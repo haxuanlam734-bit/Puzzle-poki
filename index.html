@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lab Boom! — Thí Nghiệm Điên Rồ</title>
+
+<!-- ================= POKI SDK ================= -->
+<script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg-deep:#0a1a22;
+    --bg-panel:#0f2530;
+    --glass:#123441;
+    --cyan:#4de8d4;
+    --toxic:#8bff6b;
+    --amber:#ffc145;
+    --danger:#ff5d5d;
+    --ink:#eaf6f6;
+    --ink-dim:#9fc4c4;
+    --line: rgba(77,232,212,0.18);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%; width:100%;
+    background:
+      radial-gradient(circle at 20% 10%, #123441 0%, transparent 45%),
+      radial-gradient(circle at 85% 85%, #0e2b25 0%, transparent 40%),
+      var(--bg-deep);
+    color:var(--ink);
+    font-family:'Space Mono', monospace;
+    overflow:hidden;
+    -webkit-user-select:none; user-select:none;
+  }
+  #app{
+    position:relative; width:100%; height:100%;
+    display:flex; flex-direction:column;
+  }
+
+  /* ---------- lab grid backdrop ---------- */
+  .grid-overlay{
+    position:absolute; inset:0; pointer-events:none; opacity:0.07;
+    background-image:
+      linear-gradient(var(--cyan) 1px, transparent 1px),
+      linear-gradient(90deg, var(--cyan) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  /* ---------- HUD top ---------- */
+  #hud{
+    position:relative; z-index:2;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 16px;
+    background:linear-gradient(180deg, rgba(10,26,34,0.95), rgba(10,26,34,0.6));
+    border-bottom:1px solid var(--line);
+  }
+  #hud .brand{
+    font-family:'Baloo 2', sans-serif; font-weight:800; font-size:20px;
+    color:var(--toxic); letter-spacing:0.5px;
+    display:flex; align-items:center; gap:8px;
+  }
+  #hud .brand small{
+    font-family:'Space Mono', monospace; font-size:10px; color:var(--ink-dim); font-weight:400;
+  }
+  #coinBox{
+    display:flex; align-items:center; gap:6px;
+    background:var(--glass); border:1px solid var(--line);
+    padding:6px 12px; border-radius:20px; font-weight:700; color:var(--amber);
+    font-size:14px;
+  }
+
+  /* ---------- main stage ---------- */
+  #stage{
+    position:relative; flex:1; display:flex; z-index:1; min-height:0;
+  }
+  #labScene{
+    flex:1.15; position:relative; display:flex; align-items:center; justify-content:center;
+    border-right:1px solid var(--line);
+  }
+  .table-shadow{
+    position:absolute; bottom:8%; width:60%; height:26px; border-radius:50%;
+    background:radial-gradient(ellipse, rgba(0,0,0,0.5), transparent 70%);
+  }
+
+  /* target readout */
+  #targetReadout{
+    position:absolute; top:14px; left:50%; transform:translateX(-50%);
+    background:var(--glass); border:1px solid var(--line); border-radius:10px;
+    padding:8px 16px; text-align:center; min-width:180px;
+  }
+  #targetReadout .lbl{font-size:10px; color:var(--ink-dim); letter-spacing:1px;}
+  #targetReadout .val{font-family:'Baloo 2',sans-serif; font-size:22px; color:var(--amber); font-weight:800;}
+
+  /* patient */
+  #patientWrap{ position:relative; width:220px; height:280px; }
+  #patient{ width:100%; height:100%; transition:transform 0.15s; }
+  #patient.shake{ animation:shake 0.25s infinite; }
+  @keyframes shake{
+    0%{transform:translateX(0) rotate(0deg);}
+    25%{transform:translateX(-4px) rotate(-2deg);}
+    75%{transform:translateX(4px) rotate(2deg);}
+    100%{transform:translateX(0) rotate(0deg);}
+  }
+  #patient.ko{ transform:rotate(90deg) translateY(20px); transition:transform 0.4s ease-in; }
+
+  #reactionBar{
+    position:absolute; bottom:-6px; left:50%; transform:translateX(-50%);
+    width:200px; height:10px; background:var(--bg-panel); border-radius:6px; overflow:hidden;
+    border:1px solid var(--line); display:none;
+  }
+  #reactionFill{ height:100%; width:0%; background:linear-gradient(90deg, var(--toxic), var(--danger)); }
+
+  #resultBadge{
+    position:absolute; top:40%; left:50%; transform:translate(-50%,-50%) scale(0.6);
+    background:var(--bg-panel); border:2px solid var(--amber); border-radius:16px;
+    padding:18px 26px; text-align:center; opacity:0; pointer-events:none;
+    transition:all 0.25s ease; z-index:5;
+  }
+  #resultBadge.show{ opacity:1; transform:translate(-50%,-50%) scale(1); pointer-events:all; }
+  #resultBadge h2{ margin:0 0 4px; font-family:'Baloo 2',sans-serif; color:var(--toxic); }
+  #resultBadge p{ margin:2px 0; font-size:12px; color:var(--ink-dim); }
+  #resultBadge .stars{ font-size:22px; margin:6px 0; }
+  #resultBadge button{ margin-top:8px; }
+
+  /* ---------- syringe / mixing panel ---------- */
+  #labPanel{
+    flex:1; display:flex; flex-direction:column; min-height:0;
+    background:rgba(15,37,48,0.5);
+  }
+  #mixTray{
+    display:flex; gap:8px; padding:12px; border-bottom:1px solid var(--line);
+    align-items:center; justify-content:center;
+  }
+  .slot{
+    width:52px; height:52px; border-radius:10px; border:2px dashed var(--line);
+    display:flex; align-items:center; justify-content:center; font-size:20px;
+    background:var(--glass); color:var(--ink-dim); position:relative;
+  }
+  .slot.filled{ border-style:solid; }
+  .slot .rm{
+    position:absolute; top:-6px; right:-6px; width:16px; height:16px; border-radius:50%;
+    background:var(--danger); color:#fff; font-size:10px; line-height:16px; text-align:center; cursor:pointer;
+  }
+  #injectBtn{
+    margin-left:10px; padding:12px 18px; border-radius:10px; border:none; cursor:pointer;
+    background:linear-gradient(180deg, var(--toxic), #4fbf39); color:#0a1a22; font-weight:700;
+    font-family:'Baloo 2',sans-serif; font-size:15px; letter-spacing:0.5px;
+  }
+  #injectBtn:disabled{ background:#2a3d3d; color:#5f7a7a; cursor:not-allowed; }
+
+  #periodicWrap{ flex:1; overflow-y:auto; padding:12px; }
+  #periodicGrid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(58px,1fr)); gap:8px;
+  }
+  .elem{
+    aspect-ratio:1/1; border-radius:8px; border:1px solid var(--line);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    cursor:pointer; position:relative; background:var(--glass);
+    transition:transform 0.1s;
+  }
+  .elem:active{ transform:scale(0.93); }
+  .elem .sym{ font-family:'Baloo 2',sans-serif; font-weight:800; font-size:16px; }
+  .elem .num{ position:absolute; top:2px; left:4px; font-size:8px; color:var(--ink-dim); }
+  .elem .pot{ font-size:8px; color:var(--ink-dim); margin-top:1px; }
+  .elem.locked{ background:#0c1b20; color:#3d5252; }
+  .elem.locked .sym{ color:#3d5252; }
+  .elem.locked::after{
+    content:"🔒"; position:absolute; bottom:3px; right:4px; font-size:9px;
+  }
+  .elem.selected{ outline:2px solid var(--amber); }
+
+  #footerNote{
+    padding:6px 12px; font-size:10px; color:var(--ink-dim); text-align:center; border-top:1px solid var(--line);
+  }
+
+  /* ---------- modals ---------- */
+  .modal{
+    position:fixed; inset:0; background:rgba(5,12,16,0.85); z-index:20;
+    display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal.show{ display:flex; }
+  .modal-card{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:16px;
+    padding:24px; max-width:340px; text-align:center;
+  }
+  .modal-card h2{ font-family:'Baloo 2',sans-serif; color:var(--cyan); margin-top:0; }
+  .modal-card p{ color:var(--ink-dim); font-size:13px; line-height:1.5; }
+  .btn{
+    display:inline-block; margin-top:10px; padding:10px 20px; border-radius:10px; border:none;
+    cursor:pointer; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:14px;
+  }
+  .btn-primary{ background:var(--toxic); color:#0a1a22; }
+  .btn-ghost{ background:transparent; border:1px solid var(--line); color:var(--ink); }
+
+  #loadingScreen{
+    position:fixed; inset:0; z-index:30; background:var(--bg-deep);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+  }
+  #loadingScreen h1{ font-family:'Baloo 2',sans-serif; color:var(--toxic); font-size:26px; }
+  .spinner{
+    width:40px; height:40px; border-radius:50%; border:4px solid var(--glass); border-top-color:var(--toxic);
+    animation:spin 0.9s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div id="loadingScreen">
+  <h1>🧪 LAB BOOM!</h1>
+  <div class="spinner"></div>
+  <p style="color:var(--ink-dim); font-size:12px;">Đang nạp hoá chất...</p>
+</div>
+
+<div id="app">
+  <div class="grid-overlay"></div>
+
+  <div id="hud">
+    <div class="brand">🧪 LAB BOOM! <small>PHÒNG THÍ NGHIỆM ĐIÊN RỒ</small></div>
+    <div id="coinBox">🪙 <span id="coinCount">0</span></div>
+  </div>
+
+  <div id="stage">
+    <div id="labScene">
+      <div id="targetReadout">
+        <div class="lbl">MỤC TIÊU PHẢN ỨNG</div>
+        <div class="val"><span id="targetVal">--</span>s</div>
+      </div>
+
+      <div class="table-shadow"></div>
+      <div id="patientWrap">
+        <div id="patient">
+          <svg viewBox="0 0 200 260" width="100%" height="100%">
+            <ellipse cx="100" cy="235" rx="55" ry="10" fill="rgba(0,0,0,0.35)"/>
+            <rect x="60" y="120" width="80" height="100" rx="18" fill="#3a5a63"/>
+            <rect x="60" y="120" width="80" height="100" rx="18" fill="url(#gownGrad)" id="torso"/>
+            <circle cx="100" cy="75" r="42" fill="#e8b896" id="head"/>
+            <circle cx="85" cy="72" r="5" fill="#26333a" id="eyeL"/>
+            <circle cx="115" cy="72" r="5" fill="#26333a" id="eyeR"/>
+            <path d="M85 95 Q100 103 115 95" stroke="#26333a" stroke-width="3" fill="none" stroke-linecap="round" id="mouth"/>
+            <rect x="40" y="130" width="20" height="70" rx="10" fill="#e8b896"/>
+            <rect x="140" y="130" width="20" height="70" rx="10" fill="#e8b896"/>
+            <defs>
+              <linearGradient id="gownGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#5fd6c4"/>
+                <stop offset="100%" stop-color="#3a9e91"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div id="reactionBar"><div id="reactionFill"></div></div>
+      </div>
+
+      <div id="resultBadge">
+        <h2 id="resultTitle">GỤC NGÃ!</h2>
+        <div class="stars" id="resultStars">⭐⭐⭐</div>
+        <p id="resultDetail">Thời gian: 15s (mục tiêu 15s)</p>
+        <p id="resultCoins">+30 🪙</p>
+        <button class="btn btn-primary" id="nextRoundBtn">Bệnh nhân tiếp theo ▶</button>
+      </div>
+    </div>
+
+    <div id="labPanel">
+      <div id="mixTray">
+        <div class="slot" data-slot="0">?</div>
+        <div class="slot" data-slot="1">?</div>
+        <div class="slot" data-slot="2">?</div>
+        <button id="injectBtn" disabled>💉 TIÊM</button>
+      </div>
+      <div id="periodicWrap">
+        <div id="periodicGrid"></div>
+      </div>
+      <div id="footerNote">Chạm nguyên tố để thêm vào ống tiêm • Nguyên tố khoá 🔒 cần xem quảng cáo để mở</div>
+    </div>
+  </div>
+</div>
+
+<!-- Unlock confirm modal -->
+<div class="modal" id="unlockModal">
+  <div class="modal-card">
+    <h2 id="unlockName">Nguyên tố</h2>
+    <p>Xem một quảng cáo ngắn để nhận nguyên tố này vĩnh viễn cho phòng thí nghiệm của bạn.</p>
+    <button class="btn btn-primary" id="watchAdBtn">▶ Xem quảng cáo & Mở khoá</button>
+    <br>
+    <button class="btn btn-ghost" id="cancelUnlockBtn">Để sau</button>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   LAB BOOM! — game logic
+   ========================================================= */
+
+// ---------- Periodic-table-flavored elements ----------
+// potency: ảnh hưởng tới tốc độ phản ứng khi trộn
+const ELEMENTS = [
+  {sym:"H",  num:1,  name:"Hydro",     color:"#8bd7ff", potency:1, unlocked:true},
+  {sym:"He", num:2,  name:"Heli",      color:"#c9a2ff", potency:1, unlocked:true},
+  {sym:"Li", num:3,  name:"Liti",      color:"#ff9a9a", potency:2, unlocked:true},
+  {sym:"C",  num:6,  name:"Carbon",    color:"#8a8a8a", potency:2, unlocked:false},
+  {sym:"N",  num:7,  name:"Nitơ",      color:"#6fa8ff", potency:3, unlocked:false},
+  {sym:"O",  num:8,  name:"Oxy",       color:"#7fe0d0", potency:2, unlocked:false},
+  {sym:"F",  num:9,  name:"Flo",       color:"#a8ff7f", potency:4, unlocked:false},
+  {sym:"Na", num:11, name:"Natri",     color:"#ffd27f", potency:3, unlocked:false},
+  {sym:"Mg", num:12, name:"Magiê",     color:"#c8ff9e", potency:2, unlocked:false},
+  {sym:"Al", num:13, name:"Nhôm",      color:"#cfd8dc", potency:3, unlocked:false},
+  {sym:"P",  num:15, name:"Phốt pho",  color:"#ffb347", potency:5, unlocked:false},
+  {sym:"S",  num:16, name:"Lưu huỳnh", color:"#fff27a", potency:4, unlocked:false},
+  {sym:"Cl", num:17, name:"Clo",       color:"#b9ff7a", potency:5, unlocked:false},
+  {sym:"K",  num:19, name:"Kali",      color:"#e39bff", potency:3, unlocked:false},
+  {sym:"Ca", num:20, name:"Canxi",     color:"#f0f0f0", potency:2, unlocked:false},
+  {sym:"Fe", num:26, name:"Sắt",       color:"#c98a5a", potency:4, unlocked:false},
+  {sym:"Cu", num:29, name:"Đồng",      color:"#ff9d5c", potency:3, unlocked:false},
+  {sym:"Zn", num:30, name:"Kẽm",       color:"#b0d9ff", potency:3, unlocked:false},
+  {sym:"Ag", num:47, name:"Bạc",       color:"#e8e8e8", potency:5, unlocked:false},
+  {sym:"I",  num:53, name:"Iốt",       color:"#c77dff", potency:4, unlocked:false},
+  {sym:"Au", num:79, name:"Vàng",      color:"#ffd54d", potency:6, unlocked:false},
+  {sym:"Hg", num:80, name:"Thuỷ ngân", color:"#c0c0c0", potency:7, unlocked:false},
+  {sym:"Pb", num:82, name:"Chì",       color:"#7d8a94", potency:6, unlocked:false},
+  {sym:"U",  num:92, name:"Uranium",   color:"#9dff6b", potency:9, unlocked:false},
+];
+
+const STORAGE_KEY = "labboom_save_v1";
+let state = {
+  coins: 0,
+  unlocked: ELEMENTS.filter(e=>e.unlocked).map(e=>e.sym),
+};
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const saved = JSON.parse(raw);
+      state.coins = saved.coins || 0;
+      if(Array.isArray(saved.unlocked)) state.unlocked = saved.unlocked;
+    }
+  }catch(e){}
+  ELEMENTS.forEach(e=> e.unlocked = state.unlocked.includes(e.sym));
+}
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({coins: state.coins, unlocked: state.unlocked}));
+}
+
+// ---------- round state ----------
+let targetTime = 15;
+let mixSlots = [null,null,null];
+let pendingUnlock = null;
+let reacting = false;
+
+const $ = sel => document.querySelector(sel);
+const coinCountEl = $("#coinCount");
+const targetValEl = $("#targetVal");
+const periodicGrid = $("#periodicGrid");
+const injectBtn = $("#injectBtn");
+const patientEl = $("#patient");
+const eyeL = $("#eyeL"), eyeR = $("#eyeR"), mouth = $("#mouth"), torso = $("#torso");
+const reactionBar = $("#reactionBar");
+const reactionFill = $("#reactionFill");
+const resultBadge = $("#resultBadge");
+
+function renderCoins(){ coinCountEl.textContent = state.coins; }
+
+function renderGrid(){
+  periodicGrid.innerHTML = "";
+  ELEMENTS.forEach(el=>{
+    const d = document.createElement("div");
+    d.className = "elem" + (el.unlocked ? "" : " locked");
+    d.style.background = el.unlocked ? el.color+"22" : "";
+    d.style.borderColor = el.unlocked ? el.color+"66" : "";
+    d.innerHTML = `<span class="num">${el.num}</span><span class="sym" style="color:${el.unlocked?el.color:''}">${el.sym}</span><span class="pot">${el.unlocked ? '⚡'+el.potency : 'khoá'}</span>`;
+    d.addEventListener("click", ()=> onElementTap(el));
+    periodicGrid.appendChild(d);
+  });
+}
+
+function onElementTap(el){
+  if(reacting) return;
+  if(!el.unlocked){
+    pendingUnlock = el;
+    $("#unlockName").textContent = `${el.name} (${el.sym})`;
+    $("#unlockModal").classList.add("show");
+    return;
+  }
+  const freeSlot = mixSlots.findIndex(s=>s===null);
+  if(freeSlot === -1) return; // tray full
+  mixSlots[freeSlot] = el;
+  renderTray();
+}
+
+function renderTray(){
+  document.querySelectorAll(".slot").forEach((slotEl, i)=>{
+    const el = mixSlots[i];
+    if(el){
+      slotEl.classList.add("filled");
+      slotEl.style.background = el.color+"33";
+      slotEl.style.borderColor = el.color;
+      slotEl.innerHTML = `<span style="color:${el.color}">${el.sym}</span><span class="rm">✕</span>`;
+      slotEl.querySelector(".rm").onclick = (ev)=>{ ev.stopPropagation(); mixSlots[i]=null; renderTray(); };
+    } else {
+      slotEl.classList.remove("filled");
+      slotEl.style.background = ""; slotEl.style.borderColor = "";
+      slotEl.innerHTML = "?";
+    }
+  });
+  injectBtn.disabled = mixSlots.every(s=>s===null) || reacting;
+}
+
+// ---------- unlock via rewarded ad ----------
+$("#cancelUnlockBtn").onclick = ()=> { $("#unlockModal").classList.remove("show"); pendingUnlock=null; };
+$("#watchAdBtn").onclick = ()=>{
+  if(!pendingUnlock) return;
+  const el = pendingUnlock;
+  const finish = (rewarded)=>{
+    if(rewarded){
+      el.unlocked = true;
+      state.unlocked.push(el.sym);
+      state.coins += 10; // món quà nhỏ kèm theo
+      saveState(); renderGrid(); renderCoins();
+    }
+    $("#unlockModal").classList.remove("show");
+    pendingUnlock = null;
+  };
+  if(window.PokiSDK){
+    PokiSDK.gameplayStop();
+    PokiSDK.rewardedBreak().then((success)=>{
+      PokiSDK.gameplayStart();
+      finish(!!success);
+    });
+  } else {
+    // fallback khi test ngoài Poki (không có SDK)
+    finish(true);
+  }
+};
+
+// ---------- new round ----------
+function newRound(){
+  targetTime = Math.floor(Math.random()*11) + 10; // 10..20
+  targetValEl.textContent = targetTime;
+  mixSlots = [null,null,null];
+  renderTray();
+  resultBadge.classList.remove("show");
+  patientEl.classList.remove("ko","shake");
+  patientEl.style.transform = "";
+  eyeL.setAttribute("r","5"); eyeR.setAttribute("r","5");
+  eyeL.setAttribute("d",""); eyeR.setAttribute("d","");
+  mouth.setAttribute("d","M85 95 Q100 103 115 95");
+  torso.style.fill = "";
+  reactionBar.style.display = "none";
+  reactionFill.style.width = "0%";
+  reacting = false;
+  injectBtn.disabled = true;
+}
+
+// ---------- injection sequence ----------
+injectBtn.addEventListener("click", ()=>{
+  const chosen = mixSlots.filter(Boolean);
+  if(chosen.length === 0 || reacting) return;
+  reacting = true;
+  injectBtn.disabled = true;
+
+  if(window.PokiSDK) PokiSDK.gameplayStart(); // đảm bảo đang tính là đang chơi
+
+  const totalPotency = chosen.reduce((s,e)=>s+e.potency,0);
+  // potency cao -> phản ứng nhanh hơn (thời gian ngắn hơn), giới hạn 10..20s
+  let reactionTime = 21 - totalPotency;
+  reactionTime = Math.max(10, Math.min(20, reactionTime));
+  // trộn màu huyết thanh
+  const mixColor = chosen[0].color;
+  torso.style.fill = mixColor;
+
+  reactionBar.style.display = "block";
+  patientEl.classList.add("shake");
+
+  const startTs = performance.now();
+  const durMs = reactionTime * 1000;
+
+  function tick(now){
+    const elapsed = now - startTs;
+    const pct = Math.min(100, (elapsed/durMs)*100);
+    reactionFill.style.width = pct + "%";
+    // càng gần cuối, mặt càng xanh xao / lắc mạnh hơn
+    if(pct > 60){
+      eyeL.setAttribute("r","3"); eyeR.setAttribute("r","3");
+      mouth.setAttribute("d","M85 98 Q100 90 115 98");
+    }
+    if(elapsed < durMs){
+      requestAnimationFrame(tick);
+    } else {
+      finishReaction(reactionTime);
+    }
+  }
+  requestAnimationFrame(tick);
+});
+
+function finishReaction(actualTime){
+  patientEl.classList.remove("shake");
+  patientEl.classList.add("ko");
+  eyeL.setAttribute("d","M81 68 L89 76 M89 68 L81 76"); eyeL.setAttribute("r","0");
+  eyeR.setAttribute("d","M111 68 L119 76 M119 68 L111 76"); eyeR.setAttribute("r","0");
+  mouth.setAttribute("d","M88 98 Q100 92 112 98");
+  if(window.PokiSDK) PokiSDK.gameplayStop();
+
+  const diff = Math.abs(actualTime - targetTime);
+  let stars, coinsWon;
+  if(diff === 0){ stars = "⭐⭐⭐"; coinsWon = 50; }
+  else if(diff <= 2){ stars = "⭐⭐"; coinsWon = 25; }
+  else if(diff <= 4){ stars = "⭐"; coinsWon = 10; }
+  else { stars = "💀"; coinsWon = 3; }
+
+  state.coins += coinsWon;
+  saveState(); renderCoins();
+
+  $("#resultStars").textContent = stars;
+  $("#resultDetail").textContent = `Phản ứng: ${actualTime}s (mục tiêu ${targetTime}s)`;
+  $("#resultCoins").textContent = `+${coinsWon} 🪙`;
+  resultBadge.classList.add("show");
+
+  // Cứ mỗi vài vòng, gợi ý một commercial break (Poki tự quyết định có hiện hay không)
+  window._roundCount = (window._roundCount||0) + 1;
+  if(window.PokiSDK && window._roundCount % 3 === 0){
+    PokiSDK.commercialBreak();
+  }
+}
+
+$("#nextRoundBtn").addEventListener("click", newRound);
+
+// ---------- boot ----------
+function startGame(){
+  loadState();
+  renderCoins();
+  renderGrid();
+  newRound();
+  document.getElementById("loadingScreen").style.display = "none";
+  if(window.PokiSDK){
+    PokiSDK.gameLoadingFinished();
+    PokiSDK.gameplayStart();
+  }
+}
+
+if(window.PokiSDK){
+  PokiSDK.init().then(()=>{
+    console.log("Poki SDK sẵn sàng");
+    startGame();
+  }).catch(()=>{
+    console.log("Poki SDK lỗi, vẫn chạy game bình thường");
+    startGame();
+  });
+} else {
+  // Không có mạng / test local ngoài môi trường Poki
+  window.addEventListener("load", startGame);
+}
+</script>
+</body>
+</html>
