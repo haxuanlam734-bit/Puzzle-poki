@@ -9,7 +9,7 @@
 <script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600;700&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
 
 <style>
   :root{
@@ -32,7 +32,7 @@
       radial-gradient(circle at 85% 85%, #0e2b25 0%, transparent 40%),
       var(--bg-deep);
     color:var(--ink);
-    font-family:'Space Mono', monospace;
+    font-family:'Source Code Pro', monospace;
     overflow:hidden;
     -webkit-user-select:none; user-select:none;
   }
@@ -64,7 +64,7 @@
     display:flex; align-items:center; gap:8px;
   }
   #hud .brand small{
-    font-family:'Space Mono', monospace; font-size:10px; color:var(--ink-dim); font-weight:400;
+    font-family:'Source Code Pro', monospace; font-size:10px; color:var(--ink-dim); font-weight:400;
   }
   #coinBox{
     display:flex; align-items:center; gap:6px;
@@ -106,6 +106,79 @@
     100%{transform:translateX(0) rotate(0deg);}
   }
   #patient.ko{ transform:rotate(90deg) translateY(20px); transition:transform 0.4s ease-in; }
+
+  /* ---------- 10 kiểu phản ứng khác nhau theo nhóm nguyên tố ---------- */
+  #fxLayer{ position:absolute; inset:-40px; pointer-events:none; overflow:visible; z-index:4; }
+  .particle{
+    position:absolute; left:50%; top:42%; font-size:20px; pointer-events:none;
+    animation:particleFly 0.9s ease-out forwards;
+  }
+  @keyframes particleFly{
+    0%{ transform:translate(0,0) scale(0.5); opacity:1; }
+    100%{ transform:translate(var(--tx),var(--ty)) scale(1.15); opacity:0; }
+  }
+  #fogOverlay{
+    position:absolute; inset:-20px; border-radius:50%; opacity:0; pointer-events:none;
+    background:radial-gradient(circle, var(--fog-color,#8bff6b) 0%, transparent 70%);
+    transition:opacity 0.3s; z-index:3;
+  }
+  #fogOverlay.show{ opacity:0.5; }
+
+  #patient.fx-explode{ animation:kfExplode 0.6s ease-out forwards; }
+  @keyframes kfExplode{
+    0%{ transform:scale(1) rotate(0); }
+    40%{ transform:scale(1.18) rotate(-4deg); }
+    60%{ transform:scale(0.88) rotate(6deg); }
+    100%{ transform:scale(1.02) rotate(-3deg); }
+  }
+  #patient.fx-balloon{ animation:kfBalloon 0.9s ease-in-out forwards; }
+  @keyframes kfBalloon{
+    0%{ transform:scale(1); }
+    70%{ transform:scale(1.4); }
+    85%{ transform:scale(1.45); }
+    100%{ transform:scale(0.92); }
+  }
+  #patient.fx-stone{ filter:grayscale(1) contrast(1.15) brightness(0.8); }
+  #patient.fx-melt{ animation:kfMelt 1.1s ease-in forwards; transform-origin:bottom center; }
+  @keyframes kfMelt{
+    0%{ transform:scaleY(1) scaleX(1); }
+    100%{ transform:scaleY(0.5) scaleX(1.3) translateY(22%); }
+  }
+  #patient.fx-shatter{ animation:kfShatter 0.5s ease-out forwards; }
+  @keyframes kfShatter{
+    0%{ opacity:1; transform:translateX(0); }
+    30%{ transform:translateX(-5px); }
+    60%{ transform:translateX(5px); }
+    100%{ opacity:0.88; filter:brightness(1.35) contrast(1.2); transform:translateX(0); }
+  }
+  #patient.fx-shock{ animation:kfShock 0.12s linear infinite; }
+  @keyframes kfShock{
+    0%{ transform:translate(0,0); }
+    25%{ transform:translate(-3px,2px); }
+    50%{ transform:translate(3px,-2px); }
+    75%{ transform:translate(-2px,-3px); }
+    100%{ transform:translate(2px,2px); }
+  }
+  #patient.fx-gas{ animation:kfSway 0.45s ease-in-out infinite; }
+  @keyframes kfSway{
+    0%,100%{ transform:rotate(-4deg); }
+    50%{ transform:rotate(4deg); }
+  }
+  #patient.fx-float{ animation:kfFloat 1.1s ease-in forwards; }
+  @keyframes kfFloat{
+    0%{ transform:translateY(0) rotate(0); opacity:1; }
+    100%{ transform:translateY(-150px) rotate(18deg); opacity:0.1; }
+  }
+  #patient.fx-sparkle{ animation:kfSparkle 0.5s ease-in-out infinite alternate; }
+  @keyframes kfSparkle{
+    0%{ filter:hue-rotate(0deg) brightness(1); }
+    100%{ filter:hue-rotate(70deg) brightness(1.35); }
+  }
+  #patient.fx-mutate{ animation:kfMutate 0.5s ease-in-out infinite alternate; }
+  @keyframes kfMutate{
+    0%{ filter:drop-shadow(0 0 4px #9dff6b) brightness(1); }
+    100%{ filter:drop-shadow(0 0 16px #9dff6b) brightness(1.3); }
+  }
 
   #reactionBar{
     position:absolute; bottom:-6px; left:50%; transform:translateX(-50%);
@@ -172,6 +245,15 @@
     content:"🔒"; position:absolute; bottom:3px; right:4px; font-size:9px;
   }
   .elem.selected{ outline:2px solid var(--amber); }
+
+  .catHeader{
+    grid-column:1/-1; position:sticky; top:0; z-index:2;
+    margin:6px 0 2px; padding:5px 10px; border-radius:6px;
+    font-family:'Baloo 2',sans-serif; font-size:11px; font-weight:700;
+    background:var(--bg-panel); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:space-between; gap:6px;
+  }
+  .catHeader span:last-child{ font-size:9px; white-space:nowrap; }
 
   #footerNote{
     padding:6px 12px; font-size:10px; color:var(--ink-dim); text-align:center; border-top:1px solid var(--line);
@@ -252,6 +334,8 @@
             </defs>
           </svg>
         </div>
+        <div id="fogOverlay"></div>
+        <div id="fxLayer"></div>
         <div id="reactionBar"><div id="reactionFill"></div></div>
       </div>
 
@@ -274,7 +358,7 @@
       <div id="periodicWrap">
         <div id="periodicGrid"></div>
       </div>
-      <div id="footerNote">Chạm nguyên tố để thêm vào ống tiêm • Nguyên tố khoá 🔒 cần xem quảng cáo để mở</div>
+      <div id="footerNote">Đủ 118 nguyên tố • Mỗi nhóm gây 1 kiểu phản ứng riêng • Nguyên tố khoá 🔒 cần xem quảng cáo để mở</div>
     </div>
   </div>
 </div>
@@ -295,34 +379,78 @@
    LAB BOOM! — game logic
    ========================================================= */
 
-// ---------- Periodic-table-flavored elements ----------
-// potency: ảnh hưởng tới tốc độ phản ứng khi trộn
-const ELEMENTS = [
-  {sym:"H",  num:1,  name:"Hydro",     color:"#8bd7ff", potency:1, unlocked:true},
-  {sym:"He", num:2,  name:"Heli",      color:"#c9a2ff", potency:1, unlocked:true},
-  {sym:"Li", num:3,  name:"Liti",      color:"#ff9a9a", potency:2, unlocked:true},
-  {sym:"C",  num:6,  name:"Carbon",    color:"#8a8a8a", potency:2, unlocked:false},
-  {sym:"N",  num:7,  name:"Nitơ",      color:"#6fa8ff", potency:3, unlocked:false},
-  {sym:"O",  num:8,  name:"Oxy",       color:"#7fe0d0", potency:2, unlocked:false},
-  {sym:"F",  num:9,  name:"Flo",       color:"#a8ff7f", potency:4, unlocked:false},
-  {sym:"Na", num:11, name:"Natri",     color:"#ffd27f", potency:3, unlocked:false},
-  {sym:"Mg", num:12, name:"Magiê",     color:"#c8ff9e", potency:2, unlocked:false},
-  {sym:"Al", num:13, name:"Nhôm",      color:"#cfd8dc", potency:3, unlocked:false},
-  {sym:"P",  num:15, name:"Phốt pho",  color:"#ffb347", potency:5, unlocked:false},
-  {sym:"S",  num:16, name:"Lưu huỳnh", color:"#fff27a", potency:4, unlocked:false},
-  {sym:"Cl", num:17, name:"Clo",       color:"#b9ff7a", potency:5, unlocked:false},
-  {sym:"K",  num:19, name:"Kali",      color:"#e39bff", potency:3, unlocked:false},
-  {sym:"Ca", num:20, name:"Canxi",     color:"#f0f0f0", potency:2, unlocked:false},
-  {sym:"Fe", num:26, name:"Sắt",       color:"#c98a5a", potency:4, unlocked:false},
-  {sym:"Cu", num:29, name:"Đồng",      color:"#ff9d5c", potency:3, unlocked:false},
-  {sym:"Zn", num:30, name:"Kẽm",       color:"#b0d9ff", potency:3, unlocked:false},
-  {sym:"Ag", num:47, name:"Bạc",       color:"#e8e8e8", potency:5, unlocked:false},
-  {sym:"I",  num:53, name:"Iốt",       color:"#c77dff", potency:4, unlocked:false},
-  {sym:"Au", num:79, name:"Vàng",      color:"#ffd54d", potency:6, unlocked:false},
-  {sym:"Hg", num:80, name:"Thuỷ ngân", color:"#c0c0c0", potency:7, unlocked:false},
-  {sym:"Pb", num:82, name:"Chì",       color:"#7d8a94", potency:6, unlocked:false},
-  {sym:"U",  num:92, name:"Uranium",   color:"#9dff6b", potency:9, unlocked:false},
+// ---------- Đủ 118 nguyên tố, chia theo 10 nhóm hoá học ----------
+// [số hiệu, ký hiệu, tên, nhóm]
+const RAW_ELEMENTS = [
+  [1,"H","Hydro","nonmetal"],[2,"He","Heli","noble"],[3,"Li","Liti","alkali"],
+  [4,"Be","Berili","alkaline-earth"],[5,"B","Bo","metalloid"],[6,"C","Carbon","nonmetal"],
+  [7,"N","Nitơ","nonmetal"],[8,"O","Oxy","nonmetal"],[9,"F","Flo","halogen"],
+  [10,"Ne","Neon","noble"],[11,"Na","Natri","alkali"],[12,"Mg","Magiê","alkaline-earth"],
+  [13,"Al","Nhôm","post-transition"],[14,"Si","Silic","metalloid"],[15,"P","Phốt pho","nonmetal"],
+  [16,"S","Lưu huỳnh","nonmetal"],[17,"Cl","Clo","halogen"],[18,"Ar","Argon","noble"],
+  [19,"K","Kali","alkali"],[20,"Ca","Canxi","alkaline-earth"],[21,"Sc","Scandi","transition"],
+  [22,"Ti","Titan","transition"],[23,"V","Vanadi","transition"],[24,"Cr","Crom","transition"],
+  [25,"Mn","Mangan","transition"],[26,"Fe","Sắt","transition"],[27,"Co","Coban","transition"],
+  [28,"Ni","Niken","transition"],[29,"Cu","Đồng","transition"],[30,"Zn","Kẽm","transition"],
+  [31,"Ga","Gali","post-transition"],[32,"Ge","Gecmani","metalloid"],[33,"As","Asen","metalloid"],
+  [34,"Se","Selen","nonmetal"],[35,"Br","Brom","halogen"],[36,"Kr","Krypton","noble"],
+  [37,"Rb","Rubidi","alkali"],[38,"Sr","Stronti","alkaline-earth"],[39,"Y","Ytri","transition"],
+  [40,"Zr","Zirconi","transition"],[41,"Nb","Niobi","transition"],[42,"Mo","Molipden","transition"],
+  [43,"Tc","Tecneti","transition"],[44,"Ru","Rutheni","transition"],[45,"Rh","Rodi","transition"],
+  [46,"Pd","Paladi","transition"],[47,"Ag","Bạc","transition"],[48,"Cd","Cadmi","transition"],
+  [49,"In","Indi","post-transition"],[50,"Sn","Thiếc","post-transition"],[51,"Sb","Antimon","metalloid"],
+  [52,"Te","Telu","metalloid"],[53,"I","Iốt","halogen"],[54,"Xe","Xenon","noble"],
+  [55,"Cs","Xesi","alkali"],[56,"Ba","Bari","alkaline-earth"],[57,"La","Lantan","lanthanide"],
+  [58,"Ce","Xeri","lanthanide"],[59,"Pr","Praseodim","lanthanide"],[60,"Nd","Neodim","lanthanide"],
+  [61,"Pm","Prometi","lanthanide"],[62,"Sm","Samari","lanthanide"],[63,"Eu","Europi","lanthanide"],
+  [64,"Gd","Gadolini","lanthanide"],[65,"Tb","Terbi","lanthanide"],[66,"Dy","Dysprosi","lanthanide"],
+  [67,"Ho","Honmi","lanthanide"],[68,"Er","Erbi","lanthanide"],[69,"Tm","Tuli","lanthanide"],
+  [70,"Yb","Ytterbi","lanthanide"],[71,"Lu","Luteti","lanthanide"],[72,"Hf","Hafini","transition"],
+  [73,"Ta","Tantan","transition"],[74,"W","Vonfram","transition"],[75,"Re","Reni","transition"],
+  [76,"Os","Osmi","transition"],[77,"Ir","Iridi","transition"],[78,"Pt","Bạch kim","transition"],
+  [79,"Au","Vàng","transition"],[80,"Hg","Thuỷ ngân","transition"],[81,"Tl","Tali","post-transition"],
+  [82,"Pb","Chì","post-transition"],[83,"Bi","Bitmut","post-transition"],[84,"Po","Poloni","post-transition"],
+  [85,"At","Astatin","halogen"],[86,"Rn","Radon","noble"],[87,"Fr","Franxi","alkali"],
+  [88,"Ra","Radi","alkaline-earth"],[89,"Ac","Actini","actinide"],[90,"Th","Thori","actinide"],
+  [91,"Pa","Protactini","actinide"],[92,"U","Urani","actinide"],[93,"Np","Neptuni","actinide"],
+  [94,"Pu","Plutoni","actinide"],[95,"Am","Americi","actinide"],[96,"Cm","Curi","actinide"],
+  [97,"Bk","Berkeli","actinide"],[98,"Cf","Californi","actinide"],[99,"Es","Einsteini","actinide"],
+  [100,"Fm","Fermi","actinide"],[101,"Md","Mendelevi","actinide"],[102,"No","Nobeli","actinide"],
+  [103,"Lr","Lawrenxi","actinide"],[104,"Rf","Rutherfordi","transition"],[105,"Db","Dubni","transition"],
+  [106,"Sg","Seaborgi","transition"],[107,"Bh","Bohri","transition"],[108,"Hs","Hassi","transition"],
+  [109,"Mt","Meitneri","transition"],[110,"Ds","Darmstadti","transition"],[111,"Rg","Roentgeni","transition"],
+  [112,"Cn","Copernixi","transition"],[113,"Nh","Nihoni","post-transition"],[114,"Fl","Flerovi","post-transition"],
+  [115,"Mc","Moscovi","post-transition"],[116,"Lv","Livermori","post-transition"],[117,"Ts","Tennessine","halogen"],
+  [118,"Og","Oganesson","noble"],
 ];
+
+// Mỗi nhóm hoá học ứng với 1 màu + 1 kiểu "phản ứng/cách gục" riêng khi tiêm
+const CATEGORY_META = {
+  "alkali":          {label:"Kim loại kiềm",      color:"#ff9a9a", effect:"explode", title:"NỔ TUNG!"},
+  "alkaline-earth":  {label:"Kim loại kiềm thổ",  color:"#ffb3d9", effect:"balloon", title:"PHỒNG TO RỒI NỔ BÙM!"},
+  "transition":      {label:"Kim loại chuyển tiếp",color:"#b8c4cc", effect:"stone",   title:"HOÁ THÀNH TƯỢNG!"},
+  "post-transition": {label:"Kim loại yếu",       color:"#7fd0ff", effect:"melt",    title:"TAN CHẢY NHƯ KEM!"},
+  "metalloid":       {label:"Á kim",              color:"#cfe8ff", effect:"shatter", title:"VỠ VỤN NHƯ THUỶ TINH!"},
+  "nonmetal":        {label:"Phi kim hoạt động",  color:"#fff27a", effect:"shock",   title:"GIẬT ĐIỆN DỰNG TÓC!"},
+  "halogen":         {label:"Halogen",            color:"#a8ff7f", effect:"gas",     title:"CHÌM TRONG KHÍ ĐỘC!"},
+  "noble":           {label:"Khí hiếm",           color:"#c9a2ff", effect:"float",   title:"NHẸ BẪNG BAY MẤT!"},
+  "lanthanide":      {label:"Nhóm Lantan",        color:"#ffd54d", effect:"sparkle", title:"LẤP LÁNH BIẾN HÌNH!"},
+  "actinide":        {label:"Nhóm Actini",        color:"#9dff6b", effect:"mutate",  title:"PHÁT SÁNG PHÓNG XẠ!"},
+};
+const EFFECT_PARTICLES = {
+  explode:["💥","🔥","💢"], balloon:["🎈","✨"], stone:["🪨","💤"], melt:["💧","🫠"],
+  shatter:["🔷","✨"], shock:["⚡","💫"], gas:["☠️","🟢"], float:["🎈","☁️"],
+  sparkle:["✨","🌈"], mutate:["☢️","🧟"],
+};
+// mảng tên class fx- dùng để reset mỗi vòng
+const ALL_FX = Object.values(CATEGORY_META).map(m=>"fx-"+m.effect);
+
+// potency: ảnh hưởng tới tốc độ phản ứng khi trộn (1-9, suy ra từ số hiệu nguyên tử)
+const ELEMENTS = RAW_ELEMENTS.map(([num,sym,name,cat])=>({
+  num, sym, name, cat,
+  potency: 1 + (num % 9),
+  unlocked: num <= 3, // H, He, Li mở sẵn để chơi thử ngay
+}));
 
 const STORAGE_KEY = "labboom_save_v1";
 let state = {
@@ -361,19 +489,59 @@ const eyeL = $("#eyeL"), eyeR = $("#eyeR"), mouth = $("#mouth"), torso = $("#tor
 const reactionBar = $("#reactionBar");
 const reactionFill = $("#reactionFill");
 const resultBadge = $("#resultBadge");
+const fxLayer = $("#fxLayer");
+const fogOverlay = $("#fogOverlay");
+let lastChosen = [];
+
+// chọn nhóm hoá học "chiếm ưu thế" trong hỗn hợp (tổng potency cao nhất) để quyết định hiệu ứng
+function pickDominantCategory(chosen){
+  const sums = {};
+  chosen.forEach(e=>{ sums[e.cat] = (sums[e.cat]||0) + e.potency; });
+  let best = null, bestVal = -1;
+  Object.keys(sums).forEach(cat=>{ if(sums[cat] > bestVal){ bestVal = sums[cat]; best = cat; } });
+  return best;
+}
+// hiệu ứng nào tự có chuyển động transform riêng thì không cộng thêm dáng "ngã .ko" (tránh xung đột transform)
+const TRANSFORM_EFFECTS = ["explode","balloon","melt","shatter","shock","float","gas"];
+
+function spawnParticles(emojis, count){
+  fxLayer.innerHTML = "";
+  for(let i=0;i<count;i++){
+    const p = document.createElement("span");
+    p.className = "particle";
+    p.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    const angle = Math.random()*Math.PI*2;
+    const dist = 50 + Math.random()*80;
+    p.style.setProperty("--tx", (Math.cos(angle)*dist)+"px");
+    p.style.setProperty("--ty", (Math.sin(angle)*dist - 30)+"px");
+    p.style.animationDelay = (Math.random()*0.15)+"s";
+    fxLayer.appendChild(p);
+  }
+}
 
 function renderCoins(){ coinCountEl.textContent = state.coins; }
 
+const CAT_ORDER = ["alkali","alkaline-earth","lanthanide","actinide","transition","post-transition","metalloid","nonmetal","halogen","noble"];
+
 function renderGrid(){
   periodicGrid.innerHTML = "";
-  ELEMENTS.forEach(el=>{
-    const d = document.createElement("div");
-    d.className = "elem" + (el.unlocked ? "" : " locked");
-    d.style.background = el.unlocked ? el.color+"22" : "";
-    d.style.borderColor = el.unlocked ? el.color+"66" : "";
-    d.innerHTML = `<span class="num">${el.num}</span><span class="sym" style="color:${el.unlocked?el.color:''}">${el.sym}</span><span class="pot">${el.unlocked ? '⚡'+el.potency : 'khoá'}</span>`;
-    d.addEventListener("click", ()=> onElementTap(el));
-    periodicGrid.appendChild(d);
+  CAT_ORDER.forEach(cat=>{
+    const meta = CATEGORY_META[cat];
+    const header = document.createElement("div");
+    header.className = "catHeader";
+    header.style.borderColor = meta.color+"66";
+    header.innerHTML = `<span style="color:${meta.color}">${meta.label}</span><span style="color:var(--ink-dim)">→ ${meta.title}</span>`;
+    periodicGrid.appendChild(header);
+
+    ELEMENTS.filter(e=>e.cat===cat).forEach(el=>{
+      const d = document.createElement("div");
+      d.className = "elem" + (el.unlocked ? "" : " locked");
+      d.style.background = el.unlocked ? meta.color+"22" : "";
+      d.style.borderColor = el.unlocked ? meta.color+"66" : "";
+      d.innerHTML = `<span class="num">${el.num}</span><span class="sym" style="color:${el.unlocked?meta.color:''}">${el.sym}</span><span class="pot">${el.unlocked ? '⚡'+el.potency : 'khoá'}</span>`;
+      d.addEventListener("click", ()=> onElementTap(el));
+      periodicGrid.appendChild(d);
+    });
   });
 }
 
@@ -395,10 +563,11 @@ function renderTray(){
   document.querySelectorAll(".slot").forEach((slotEl, i)=>{
     const el = mixSlots[i];
     if(el){
+      const color = CATEGORY_META[el.cat].color;
       slotEl.classList.add("filled");
-      slotEl.style.background = el.color+"33";
-      slotEl.style.borderColor = el.color;
-      slotEl.innerHTML = `<span style="color:${el.color}">${el.sym}</span><span class="rm">✕</span>`;
+      slotEl.style.background = color+"33";
+      slotEl.style.borderColor = color;
+      slotEl.innerHTML = `<span style="color:${color}">${el.sym}</span><span class="rm">✕</span>`;
       slotEl.querySelector(".rm").onclick = (ev)=>{ ev.stopPropagation(); mixSlots[i]=null; renderTray(); };
     } else {
       slotEl.classList.remove("filled");
@@ -441,10 +610,14 @@ function newRound(){
   targetTime = Math.floor(Math.random()*11) + 10; // 10..20
   targetValEl.textContent = targetTime;
   mixSlots = [null,null,null];
+  lastChosen = [];
   renderTray();
   resultBadge.classList.remove("show");
-  patientEl.classList.remove("ko","shake");
+  patientEl.classList.remove("ko","shake", ...ALL_FX);
   patientEl.style.transform = "";
+  patientEl.style.filter = "";
+  fxLayer.innerHTML = "";
+  fogOverlay.classList.remove("show");
   eyeL.setAttribute("r","5"); eyeR.setAttribute("r","5");
   eyeL.setAttribute("d",""); eyeR.setAttribute("d","");
   mouth.setAttribute("d","M85 95 Q100 103 115 95");
@@ -461,6 +634,7 @@ injectBtn.addEventListener("click", ()=>{
   if(chosen.length === 0 || reacting) return;
   reacting = true;
   injectBtn.disabled = true;
+  lastChosen = chosen.slice();
 
   if(window.PokiSDK) PokiSDK.gameplayStart(); // đảm bảo đang tính là đang chơi
 
@@ -468,9 +642,8 @@ injectBtn.addEventListener("click", ()=>{
   // potency cao -> phản ứng nhanh hơn (thời gian ngắn hơn), giới hạn 10..20s
   let reactionTime = 21 - totalPotency;
   reactionTime = Math.max(10, Math.min(20, reactionTime));
-  // trộn màu huyết thanh
-  const mixColor = chosen[0].color;
-  torso.style.fill = mixColor;
+  // trộn màu huyết thanh theo nhóm của nguyên tố đầu tiên
+  torso.style.fill = CATEGORY_META[chosen[0].cat].color;
 
   reactionBar.style.display = "block";
   patientEl.classList.add("shake");
@@ -498,11 +671,22 @@ injectBtn.addEventListener("click", ()=>{
 
 function finishReaction(actualTime){
   patientEl.classList.remove("shake");
-  patientEl.classList.add("ko");
   eyeL.setAttribute("d","M81 68 L89 76 M89 68 L81 76"); eyeL.setAttribute("r","0");
   eyeR.setAttribute("d","M111 68 L119 76 M119 68 L111 76"); eyeR.setAttribute("r","0");
   mouth.setAttribute("d","M88 98 Q100 92 112 98");
   if(window.PokiSDK) PokiSDK.gameplayStop();
+
+  // Quyết định "cách gục" dựa trên nhóm hoá học chiếm ưu thế trong hỗn hợp đã tiêm
+  const dominantCat = pickDominantCategory(lastChosen) || "nonmetal";
+  const meta = CATEGORY_META[dominantCat];
+
+  if(!TRANSFORM_EFFECTS.includes(meta.effect)) patientEl.classList.add("ko");
+  if(meta.effect === "gas"){
+    fogOverlay.style.setProperty("--fog-color", meta.color);
+    fogOverlay.classList.add("show");
+  }
+  patientEl.classList.add("fx-"+meta.effect);
+  spawnParticles(EFFECT_PARTICLES[meta.effect] || ["💫"], 10);
 
   const diff = Math.abs(actualTime - targetTime);
   let stars, coinsWon;
@@ -514,8 +698,9 @@ function finishReaction(actualTime){
   state.coins += coinsWon;
   saveState(); renderCoins();
 
+  $("#resultTitle").textContent = meta.title;
   $("#resultStars").textContent = stars;
-  $("#resultDetail").textContent = `Phản ứng: ${actualTime}s (mục tiêu ${targetTime}s)`;
+  $("#resultDetail").textContent = `${meta.label} • Phản ứng: ${actualTime}s (mục tiêu ${targetTime}s)`;
   $("#resultCoins").textContent = `+${coinsWon} 🪙`;
   resultBadge.classList.add("show");
 
