@@ -5,8 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Puzzle Light - 50 Levels</title>
     <style>
-        body { margin: 0; padding: 0; background: radial-gradient(circle, #1a1a2e, #0f0f1a); display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: 'Arial', sans-serif; }
-        canvas { box-shadow: 0 0 40px rgba(0, 243, 255, 0.2); border-radius: 12px; }
+        body { 
+            margin: 0; 
+            padding: 0; 
+            background: radial-gradient(circle, #1a1a2e, #0f0f1a); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            overflow: hidden; 
+            font-family: 'Arial', sans-serif; 
+        }
+        canvas { 
+            box-shadow: 0 0 40px rgba(0, 243, 255, 0.2); 
+            border-radius: 12px; 
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
     <script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
@@ -17,38 +30,55 @@
     let highestPuzzleLevel = parseInt(localStorage.getItem('puzzle_unlocked_50')) || 1;
     const MAX_LEVEL = 50;
 
-    PokiSDK.init().then(() => { console.log("Poki SDK init"); }).catch(() => { console.log("Poki SDK failed"); });
+    // Khởi tạo Poki SDK an toàn
+    try {
+        if (typeof PokiSDK !== 'undefined') {
+            PokiSDK.init().then(() => { console.log("Poki SDK init success"); }).catch(() => { console.log("Poki SDK failed"); });
+        }
+    } catch(e) {}
 
+    // --- 1. BOOT SCENE: TẠO HÌNH ẢNH (TEXTURES) ---
     class BootScene extends Phaser.Scene {
         constructor() { super({ key: 'BootScene' }); }
         create() {
             let g = this.make.graphics({ x: 0, y: 0, add: false });
+            
             // Ô đèn TẮT
-            g.fillStyle(0x16213e); g.fillRoundedRect(0, 0, 64, 64, 10);
-            g.generateTexture('tile_off', 64, 64); g.clear();
+            g.fillStyle(0x16213e); 
+            g.fillRoundedRect(0, 0, 64, 64, 10);
+            g.generateTexture('tile_off', 64, 64); 
+            g.clear();
+            
             // Ô đèn SÁNG
-            g.fillStyle(0xfff200); g.fillRoundedRect(0, 0, 64, 64, 10);
-            g.generateTexture('tile_on', 64, 64); g.clear();
+            g.fillStyle(0xfff200); 
+            g.fillRoundedRect(0, 0, 64, 64, 10);
+            g.generateTexture('tile_on', 64, 64); 
+            
+            // Chuyển thẳng sang Sảnh Chờ
             this.scene.start('LobbyScene');
         }
     }
 
+    // --- 2. LOBBY SCENE: SẢNH CHỜ 50 MÀN ---
     class LobbyScene extends Phaser.Scene {
         constructor() { super({ key: 'LobbyScene' }); }
         create() {
+            // Tiêu đề
             this.add.text(400, 45, 'THẮP SÁNG TẤT CẢ', { fontSize: '38px', fill: '#00f3ff', fontStyle: 'bold' }).setOrigin(0.5);
             this.add.text(400, 85, 'PUZZLE - GIẢI ĐỐ', { fontSize: '20px', fill: '#ff00ff', fontStyle: 'bold' }).setOrigin(0.5);
 
-            // Nút Reset
-            this.add.text(400, 560, '[ Xóa Tiến Trình Chơi Lại ]', { fontSize: '14px', fill: '#ff6b6b' })
-                .setOrigin(0.5).setInteractive({ useHandCursor: true })
-                .on('pointerdown', () => {
-                    localStorage.setItem('puzzle_unlocked_50', 1);
-                    highestPuzzleLevel = 1;
-                    this.scene.restart();
-                });
+            // Nút Reset tiến trình
+            let resetBtn = this.add.text(400, 560, '[ Xóa Tiến Trình Chơi Lại ]', { fontSize: '14px', fill: '#ff6b6b' })
+                .setOrigin(0.5)
+                .setInteractive({ useHandCursor: true });
+            
+            resetBtn.on('pointerdown', () => {
+                localStorage.setItem('puzzle_unlocked_50', 1);
+                highestPuzzleLevel = 1;
+                this.scene.restart();
+            });
 
-            // Hiển thị 50 màn (5 hàng x 10 cột)
+            // Lưới hiển thị 50 màn (5 hàng x 10 cột)
             let startX = 155, startY = 150;
             for (let i = 1; i <= MAX_LEVEL; i++) {
                 let row = Math.floor((i - 1) / 10);
@@ -57,14 +87,15 @@
                 let y = startY + row * 65;
                 
                 let isLocked = i > highestPuzzleLevel;
-                let btn = this.add.rectangle(x, y, 48, 55, isLocked ? 0x2c3e50 : 0x00b4d8).setStrokeStyle(2, 0xffffff);
+                let btnColor = isLocked ? 0x2c3e50 : 0x00b4d8;
+                
+                let btn = this.add.rectangle(x, y, 48, 55, btnColor).setStrokeStyle(2, 0xffffff);
                 
                 if (!isLocked) {
-                    btn.setInteractive({ useHandCursor: true })
-                       .on('pointerdown', () => {
-                           this.sound.play('click_sound');
-                           this.scene.start('GameScene', { level: i });
-                       });
+                    btn.setInteractive({ useHandCursor: true });
+                    btn.on('pointerdown', () => {
+                        this.scene.start('GameScene', { level: i });
+                    });
                     this.add.text(x, y, i, { fontSize: '16px', fill: '#fff', fontStyle: 'bold' }).setOrigin(0.5);
                 } else {
                     this.add.text(x, y, '🔒', { fontSize: '14px' }).setOrigin(0.5);
@@ -73,29 +104,29 @@
         }
     }
 
+    // --- 3. GAME SCENE: MÀN HÌNH CHƠI CHÍNH ---
     class GameScene extends Phaser.Scene {
         constructor() { super({ key: 'GameScene' }); }
+        
         init(data) { 
-            this.level = data.level; 
+            this.level = data.level || 1; 
             this.isSolving = false; 
-            this.timeLeft = 300; // Đã nâng lên 5 phút (300 giây)
+            this.timeLeft = 300; // 5 phút
         }
 
         create() {
-            PokiSDK.gameplayStart();
-
-            // Tạo âm thanh tổng hợp bằng Web Audio API tích hợp sẵn trong Phaser (Không cần link ngoài)
-            this.createSounds();
+            try { if (typeof PokiSDK !== 'undefined') PokiSDK.gameplayStart(); } catch(e) {}
 
             // Nút Quay về Sảnh
-            this.add.text(50, 25, '↩ Sảnh', { fontSize: '18px', fill: '#ff6b6b', fontStyle: 'bold' })
-                .setInteractive({ useHandCursor: true })
-                .on('pointerdown', () => {
-                    this.sound.play('click_sound');
-                    PokiSDK.gameplayStop();
-                    this.scene.start('LobbyScene');
-                });
+            let lobbyBtn = this.add.text(50, 25, '↩ Sảnh', { fontSize: '18px', fill: '#ff6b6b', fontStyle: 'bold' })
+                .setInteractive({ useHandCursor: true });
+            
+            lobbyBtn.on('pointerdown', () => {
+                try { if (typeof PokiSDK !== 'undefined') PokiSDK.gameplayStop(); } catch(e) {}
+                this.scene.start('LobbyScene');
+            });
 
+            // Tiêu đề và Đồng hồ 5 phút
             this.add.text(400, 25, `MÀN: ${this.level}/50`, { fontSize: '22px', fill: '#00f3ff', fontStyle: 'bold' }).setOrigin(0.5);
             this.timerText = this.add.text(720, 25, '05:00', { fontSize: '20px', fill: '#ff4757', fontStyle: 'bold' }).setOrigin(0.5);
             
@@ -110,85 +141,48 @@
                 loop: true 
             });
 
-            // Cấu hình kích thước lưới theo màn
+            // Cấu hình lưới theo độ khó từng màn
             this.gridSize = this.level <= 15 ? 3 : (this.level <= 35 ? 4 : 5);
             this.shuffleMoves = 2 + Math.floor(this.level * 0.7);
 
             this.createGrid();
             
-            // Nút Skip (Bỏ qua) xem quảng cáo
+            // Nút Bỏ qua (Skip / Ads)
             let skipBtn = this.add.text(400, 555, '⏭ BỎ QUA (ADS)', { fontSize: '18px', fill: '#fff', fontStyle: 'bold', backgroundColor: '#8e44ad', padding: {x: 16, y: 8} })
-                .setOrigin(0.5).setInteractive({ useHandCursor: true });
+                .setOrigin(0.5)
+                .setInteractive({ useHandCursor: true });
             
-            skipBtn.on('pointerdown', () => {
-                this.sound.play('click_sound');
-                this.nextLevel();
-            });
-        }
-
-        createSounds() {
-            // Tạo các hiệu ứng âm thanh tổng hợp trực tiếp bằng code để game tự chạy mượt mà
-            if (!this.sound.get('click_sound')) {
-                let ctx = this.sound.context;
-                
-                // Tiếng click nút
-                let osc = ctx.createOscillator();
-                let gain = ctx.createGain();
-                osc.type = 'sine'; osc.frequency.setValueAtTime(600, ctx.currentTime);
-                gain.gain.setValueAtTime(0.1, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
-                osc.connect(gain); gain.connect(ctx.destination);
-                this.sound.add('click_sound', { source: { play: () => { 
-                    try { 
-                        let o = ctx.createOscillator(), g = ctx.createGain();
-                        o.frequency.setValueAtTime(500, ctx.currentTime);
-                        g.gain.setValueAtTime(0.1, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
-                        o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime + 0.1);
-                    } catch(e){} 
-                }});
-
-                // Tiếng chiến thắng
-                this.sound.add('win_sound', { source: { play: () => {
-                    try {
-                        [400, 600, 800].forEach((freq, idx) => {
-                            let o = ctx.createOscillator(), g = ctx.createGain();
-                            o.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.1);
-                            g.gain.setValueAtTime(0.15, ctx.currentTime + idx * 0.1);
-                            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.1 + 0.2);
-                            o.connect(g); g.connect(ctx.destination); 
-                            o.start(ctx.currentTime + idx * 0.1); o.stop(ctx.currentTime + idx * 0.1 + 0.2);
-                        });
-                    } catch(e){}
-                }});
-            }
+            skipBtn.on('pointerdown', () => this.nextLevel());
         }
 
         createGrid() {
             this.gridValues = [];
             this.gridSprites = [];
 
-            for(let r=0; r<this.gridSize; r++) {
+            for(let r = 0; r < this.gridSize; r++) {
                 this.gridValues[r] = [];
                 this.gridSprites[r] = [];
-                for(let c=0; c<this.gridSize; c++) {
-                    this.gridValues[r][c] = 1; 
+                for(let c = 0; c < this.gridSize; c++) {
+                    this.gridValues[r][c] = 1; // Mặc định sáng tất cả
                 }
             }
 
-            for(let i=0; i<this.shuffleMoves; i++) {
+            // Xáo trộn bảng
+            for(let i = 0; i < this.shuffleMoves; i++) {
                 let r = Phaser.Math.Between(0, this.gridSize - 1);
                 let c = Phaser.Math.Between(0, this.gridSize - 1);
                 this.toggleLogic(r, c);
             }
 
+            // Vẽ bảng ra màn hình
             let tileSize = 70;
             let spacing = 8;
             let boardSize = this.gridSize * tileSize + (this.gridSize - 1) * spacing;
             let startX = (800 - boardSize) / 2 + tileSize / 2;
             let startY = (600 - boardSize) / 2 + tileSize / 2 + 10;
 
-            for(let r=0; r<this.gridSize; r++) {
-                for(let c=0; c<this.gridSize; c++) {
+            for(let r = 0; r < this.gridSize; r++) {
+                for(let c = 0; c < this.gridSize; c++) {
                     let x = startX + c * (tileSize + spacing);
                     let y = startY + r * (tileSize + spacing);
 
@@ -198,7 +192,6 @@
                     let rowIdx = r;
                     let colIdx = c;
                     tile.on('pointerdown', () => {
-                        this.sound.play('click_sound');
                         this.onTileClicked(rowIdx, colIdx);
                     });
 
@@ -229,8 +222,8 @@
         }
 
         updateBoardSprites() {
-            for(let r=0; r<this.gridSize; r++) {
-                for(let c=0; c<this.gridSize; c++) {
+            for(let r = 0; r < this.gridSize; r++) {
+                for(let c = 0; c < this.gridSize; c++) {
                     let texture = this.gridValues[r][c] === 1 ? 'tile_on' : 'tile_off';
                     this.gridSprites[r][c].setTexture(texture);
                 }
@@ -239,8 +232,8 @@
 
         checkWinCondition() {
             let isWin = true;
-            for(let r=0; r<this.gridSize; r++) {
-                for(let c=0; c<this.gridSize; c++) {
+            for(let r = 0; r < this.gridSize; r++) {
+                for(let c = 0; c < this.gridSize; c++) {
                     if (this.gridValues[r][c] === 0) {
                         isWin = false;
                         break;
@@ -252,12 +245,11 @@
             if (isWin) {
                 this.isSolving = true;
                 if(this.timeEvent) this.timeEvent.remove();
-                this.sound.play('win_sound');
 
                 this.add.text(400, 300, '🌟 CHIẾN THẮNG! 🌟', { fontSize: '48px', fill: '#00f3ff', fontStyle: 'bold' })
                     .setOrigin(0.5).setShadow(3, 3, '#000', 5);
 
-                this.time.delayedCall(1200, () => this.nextLevel());
+                this.time.delayedCall(1000, () => this.nextLevel());
             }
         }
 
@@ -269,11 +261,18 @@
             this.add.text(400, 300, 'HẾT GIỜ!', { fontSize: '56px', fill: '#ff4757', fontStyle: 'bold' })
                 .setOrigin(0.5).setShadow(3, 3, '#000', 5);
 
-            PokiSDK.gameplayStop();
-            this.time.delayedCall(1200, () => {
-                PokiSDK.commercialBreak().then(() => {
+            try { if (typeof PokiSDK !== 'undefined') PokiSDK.gameplayStop(); } catch(e) {}
+
+            this.time.delayedCall(1000, () => {
+                if (typeof PokiSDK !== 'undefined') {
+                    PokiSDK.commercialBreak().then(() => {
+                        this.scene.start('GameScene', { level: this.level });
+                    }).catch(() => {
+                        this.scene.start('GameScene', { level: this.level });
+                    });
+                } else {
                     this.scene.start('GameScene', { level: this.level });
-                });
+                }
             });
         }
 
@@ -282,29 +281,39 @@
             this.isSolving = true;
             if(this.timeEvent) this.timeEvent.remove();
 
-            PokiSDK.gameplayStop();
+            try { if (typeof PokiSDK !== 'undefined') PokiSDK.gameplayStop(); } catch(e) {}
 
             if(this.level >= highestPuzzleLevel && this.level < MAX_LEVEL) {
                 highestPuzzleLevel = this.level + 1;
                 localStorage.setItem('puzzle_unlocked_50', highestPuzzleLevel);
             }
 
-            PokiSDK.commercialBreak().then(() => {
-                if (this.level < MAX_LEVEL) {
-                    this.scene.start('GameScene', { level: this.level + 1 });
+            let nextLvl = this.level + 1;
+
+            let proceed = () => {
+                if (nextLvl <= MAX_LEVEL) {
+                    this.scene.start('GameScene', { level: nextLvl });
                 } else {
                     this.scene.start('LobbyScene');
                 }
-            });
+            };
+
+            if (typeof PokiSDK !== 'undefined') {
+                PokiSDK.commercialBreak().then(proceed).catch(proceed);
+            } else {
+                proceed();
+            }
         }
     }
 
+    // Cấu hình game
     const config = { 
         type: Phaser.AUTO, 
         width: 800, 
         height: 600, 
         scene: [BootScene, LobbyScene, GameScene] 
     };
+
     const game = new Phaser.Game(config);
 </script>
 </body>
