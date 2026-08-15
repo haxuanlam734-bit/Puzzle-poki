@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stickman Parkour - Hardcore</title>
+    <title>Puzzle Light - Poki Game</title>
     <style>
-        body { margin: 0; padding: 0; background-color: #111; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden;}
-        canvas { box-shadow: 0 0 30px rgba(230, 126, 34, 0.4); border-radius: 10px; border: 2px solid #e67e22; }
+        body { margin: 0; padding: 0; background-color: #0f0f1a; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden;}
+        canvas { box-shadow: 0 0 40px rgba(0, 255, 255, 0.2); border-radius: 12px; border: 2px solid #2980b9; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
     <script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
@@ -15,42 +15,26 @@
 
 <script>
     // --- LƯU TRỮ TIẾN TRÌNH ---
-    let highestLevel = parseInt(localStorage.getItem('stickman_unlocked_hc')) || 1;
+    let highestPuzzleLevel = parseInt(localStorage.getItem('puzzle_unlocked')) || 1;
+    const MAX_LEVEL = 10;
 
     PokiSDK.init().then(() => { console.log("Poki SDK init"); }).catch(() => { console.log("Poki SDK failed"); });
 
-    // --- SCENE TẠO HÌNH ẢNH ---
+    // --- SCENE TẠO HÌNH ẢNH (Không cần file ảnh) ---
     class BootScene extends Phaser.Scene {
         constructor() { super({ key: 'BootScene' }); }
         create() {
             let g = this.make.graphics({ x: 0, y: 0, add: false });
             
-            // Người Que
-            g.lineStyle(2, 0xffffff);
-            g.beginPath();
-            g.strokeCircle(16, 8, 6); 
-            g.moveTo(16, 14); g.lineTo(16, 30); 
-            g.moveTo(16, 18); g.lineTo(6, 26); 
-            g.moveTo(16, 18); g.lineTo(26, 26); 
-            g.moveTo(16, 30); g.lineTo(8, 44); 
-            g.moveTo(16, 30); g.lineTo(24, 44); 
-            g.strokePath();
-            g.generateTexture('stickman', 32, 48); g.clear();
+            // Vẽ Ô đèn TẮT (Màu xám tối)
+            g.fillStyle(0x2c3e50); g.fillRoundedRect(0, 0, 64, 64, 8);
+            g.lineStyle(4, 0x34495e); g.strokeRoundedRect(0, 0, 64, 64, 8);
+            g.generateTexture('tile_off', 64, 64); g.clear();
 
-            // Cửa Đích
-            g.fillStyle(0x2ecc71); g.fillRect(0, 0, 40, 60); 
-            g.fillStyle(0x000000); g.fillRect(5, 5, 30, 50); 
-            g.generateTexture('portal', 40, 60); g.clear();
-
-            // Gai nhọn
-            g.fillStyle(0xe74c3c); g.beginPath();
-            g.moveTo(0, 32); g.lineTo(16, 0); g.lineTo(32, 32); g.closePath(); g.fillPath();
-            g.generateTexture('spike', 32, 32); g.clear();
-
-            // Bệ đá
-            g.fillStyle(0x2c3e50); g.fillRect(0, 0, 32, 32);
-            g.lineStyle(2, 0x34495e); g.strokeRect(0, 0, 32, 32);
-            g.generateTexture('block', 32, 32); g.clear();
+            // Vẽ Ô đèn SÁNG (Màu vàng neon)
+            g.fillStyle(0xf1c40f); g.fillRoundedRect(0, 0, 64, 64, 8);
+            g.lineStyle(4, 0xffeb3b); g.strokeRoundedRect(0, 0, 64, 64, 8);
+            g.generateTexture('tile_on', 64, 64); g.clear();
 
             this.scene.start('LobbyScene');
         }
@@ -60,38 +44,42 @@
     class LobbyScene extends Phaser.Scene {
         constructor() { super({ key: 'LobbyScene' }); }
         create() {
-            this.cameras.main.setBackgroundColor('#1a1a1a');
+            this.cameras.main.setBackgroundColor('#1a1a2e');
             
-            this.add.text(400, 60, 'STICKMAN PARKOUR', { fontSize: '48px', fill: '#fff', fontStyle: 'bold' }).setOrigin(0.5);
-            this.add.text(400, 110, 'CHẾ ĐỘ: HARDCORE (KHÔNG TROLL)', { fontSize: '24px', fill: '#e67e22', fontStyle: 'bold' }).setOrigin(0.5);
+            this.add.text(400, 80, 'THẮP SÁNG TẤT CẢ', { fontSize: '48px', fill: '#f1c40f', fontStyle: 'bold' }).setOrigin(0.5);
+            this.add.text(400, 130, 'PUZZLE GIẢI ĐỐ', { fontSize: '24px', fill: '#00d2d3', fontStyle: 'bold' }).setOrigin(0.5);
 
-            this.add.text(400, 550, '[ Xóa Dữ Liệu Chơi Lại ]', { fontSize: '16px', fill: '#95a5a6' })
+            // Nút Reset
+            this.add.text(400, 530, '[ Xóa Dữ Liệu Chơi Lại ]', { fontSize: '16px', fill: '#95a5a6' })
                 .setOrigin(0.5).setInteractive({ useHandCursor: true })
                 .on('pointerdown', () => {
-                    localStorage.setItem('stickman_unlocked_hc', 1);
-                    highestLevel = 1;
+                    localStorage.setItem('puzzle_unlocked', 1);
+                    highestPuzzleLevel = 1;
                     this.scene.restart();
                 });
 
-            let startX = 130, startY = 200;
-            for (let i = 1; i <= 50; i++) {
-                let row = Math.floor((i - 1) / 10), col = (i - 1) % 10;
-                let x = startX + col * 60, y = startY + row * 60;
+            // Lưới chọn 10 màn
+            let startX = 220, startY = 250;
+            for (let i = 1; i <= MAX_LEVEL; i++) {
+                let row = Math.floor((i - 1) / 5);
+                let col = (i - 1) % 5;
+                let x = startX + col * 90;
+                let y = startY + row * 90;
                 
-                let isLocked = i > highestLevel; 
-                let color = isLocked ? 0x333333 : 0xe67e22; // Đổi màu sảnh thành cam cho ngầu
-                let textColor = isLocked ? '#555' : '#fff';
+                let isLocked = i > highestPuzzleLevel; 
+                let bgColor = isLocked ? 0x2d3436 : 0x0984e3;
+                let textColor = isLocked ? '#636e72' : '#ffffff';
 
-                let btn = this.add.rectangle(x, y, 45, 45, color);
+                let btn = this.add.rectangle(x, y, 70, 70, bgColor).setStrokeStyle(2, 0x000000);
                 
                 if (!isLocked) {
                     btn.setInteractive({ useHandCursor: true })
                        .on('pointerdown', () => this.scene.start('GameScene', { level: i }))
-                       .on('pointerover', () => btn.setFillStyle(0xd35400))
-                       .on('pointerout', () => btn.setFillStyle(0xe67e22));
-                    this.add.text(x, y, i.toString(), { fontSize: '20px', fill: textColor, fontStyle: 'bold' }).setOrigin(0.5);
+                       .on('pointerover', () => btn.setFillStyle(0x74b9ff))
+                       .on('pointerout', () => btn.setFillStyle(0x0984e3));
+                    this.add.text(x, y, i.toString(), { fontSize: '28px', fill: textColor, fontStyle: 'bold' }).setOrigin(0.5);
                 } else {
-                    this.add.text(x, y, 'X', { fontSize: '20px', fill: textColor, fontStyle: 'bold' }).setOrigin(0.5);
+                    this.add.text(x, y, '🔒', { fontSize: '24px', fill: textColor }).setOrigin(0.5);
                 }
             }
         }
@@ -100,206 +88,183 @@
     // --- CẢNH CHƠI GAME ---
     class GameScene extends Phaser.Scene {
         constructor() { super({ key: 'GameScene' }); }
-        init(data) { this.level = data.level; }
+        
+        init(data) { 
+            this.level = data.level; 
+            this.isSolving = false; // Khóa bấm khi đang chuyển màn
+        }
 
         create() {
-            this.cameras.main.setBackgroundColor('#2c3e50');
+            this.cameras.main.setBackgroundColor('#16213e');
+            PokiSDK.gameplayStart();
             
-            this.add.text(20, 20, `MAP: ${this.level}`, { fontSize: '20px', fill: '#fff', fontStyle: 'bold' });
-            
-            this.add.text(700, 20, 'Về Sảnh ↩', { fontSize: '18px', fill: '#e74c3c' })
+            // Header UI
+            this.add.text(30, 20, `MÀN CHƠI: ${this.level}/${MAX_LEVEL}`, { fontSize: '24px', fill: '#00d2d3', fontStyle: 'bold' });
+            this.add.text(400, 35, 'Bấm vào 1 ô để đảo trạng thái ô đó và xung quanh', { fontSize: '16px', fill: '#a4b0be' }).setOrigin(0.5);
+
+            // --- Nút Quay về Sảnh ---
+            this.add.text(680, 20, 'Sảnh ↩', { fontSize: '20px', fill: '#ff6b6b' })
                 .setInteractive({ useHandCursor: true })
                 .on('pointerdown', () => {
-                    this.physics.pause();
+                    PokiSDK.gameplayStop();
                     this.scene.start('LobbyScene');
                 });
 
-            PokiSDK.gameplayStart();
-
-            this.platforms = this.physics.add.staticGroup();
-            this.spikes = this.physics.add.group({ allowGravity: false, immovable: true });
-            this.fallingBlocks = this.physics.add.group({ allowGravity: false, immovable: true });
-
-            // Người que (Hitbox siêu chuẩn để parkour)
-            this.player = this.physics.add.sprite(50, 400, 'stickman').setSize(14, 42); 
-            this.player.setCollideWorldBounds(true);
+            // --- Nút Skip (Xem quảng cáo) ---
+            let skipBtn = this.add.rectangle(400, 540, 200, 50, 0x8e44ad, 1).setInteractive({ useHandCursor: true });
+            this.add.text(400, 540, '⏭ SKIP (QUẢNG CÁO)', { fontSize: '18px', fill: '#fff', fontStyle: 'bold' }).setOrigin(0.5);
             
-            this.physics.add.collider(this.player, this.platforms);
-            this.physics.add.overlap(this.player, this.spikes, this.die, null, this);
-            
-            // Cơ chế bệ sập (Rơi rất nhanh sau khi chạm 0.1s)
-            this.physics.add.collider(this.player, this.fallingBlocks, (player, block) => {
-                if (player.body.touching.down && block.body.touching.up) {
-                    this.time.delayedCall(100, () => { block.body.allowGravity = true; }, [], this);
+            skipBtn.on('pointerover', () => skipBtn.setFillStyle(0x9b59b6));
+            skipBtn.on('pointerout', () => skipBtn.setFillStyle(0x8e44ad));
+            skipBtn.on('pointerdown', () => this.skipLevel());
+
+            // --- Thiết lập độ khó (Kích thước lưới & số bước xáo trộn) ---
+            const levelConfigs = [
+                { size: 3, shuffle: 1 },  // Lv 1: Dễ nhất
+                { size: 3, shuffle: 2 },  // Lv 2
+                { size: 3, shuffle: 4 },  // Lv 3
+                { size: 4, shuffle: 3 },  // Lv 4
+                { size: 4, shuffle: 5 },  // Lv 5
+                { size: 4, shuffle: 8 },  // Lv 6
+                { size: 5, shuffle: 6 },  // Lv 7
+                { size: 5, shuffle: 10 }, // Lv 8
+                { size: 5, shuffle: 15 }, // Lv 9
+                { size: 5, shuffle: 25 }  // Lv 10: Siêu khó
+            ];
+
+            let conf = levelConfigs[this.level - 1];
+            this.gridSize = conf.size;
+            this.shuffleMoves = conf.shuffle;
+
+            this.createGrid();
+        }
+
+        createGrid() {
+            this.gridData = []; // Lưu trạng thái logic: 1 (Sáng), 0 (Tắt)
+            this.gridSprites = []; // Lưu hình ảnh hiển thị
+
+            let tileSize = 64;
+            let spacing = 10;
+            let boardSize = this.gridSize * tileSize + (this.gridSize - 1) * spacing;
+            let startX = (800 - boardSize) / 2 + tileSize / 2;
+            let startY = (600 - boardSize) / 2 + tileSize / 2 + 20;
+
+            // 1. Tạo bảng logic mặc định là SÁNG TẤT CẢ (Để đảm bảo chắc chắn có thể giải được)
+            for (let r = 0; r < this.gridSize; r++) {
+                this.gridData[r] = [];
+                for (let c = 0; c < this.gridSize; c++) {
+                    this.gridData[r][c] = 1; // 1 = Sáng
                 }
-            });
-
-            this.cursors = this.input.keyboard.createCursorKeys();
-            this.buildLevel(this.level);
-        }
-
-        buildLevel(level) {
-            const createGround = (x, y, width, height = 32) => {
-                let p = this.add.tileSprite(x + width/2, y + height/2, width, height, 'block');
-                this.physics.add.existing(p, true);
-                this.platforms.add(p);
-            };
-
-            const createGoal = (x, y) => {
-                this.goal = this.physics.add.sprite(x, y, 'portal');
-                this.goal.body.allowGravity = false;
-                this.physics.add.overlap(this.player, this.goal, this.win, null, this);
-            };
-
-            // Rải gai toàn bộ đáy vực cho mọi map
-            const fillSpikes = () => {
-                for(let i=0; i<25; i++) { this.spikes.create(16 + i*32, 584, 'spike'); }
-            };
-
-            if (level === 1) {
-                // Kỹ năng: Nhảy chuẩn xác lên các bệ cực nhỏ
-                createGround(0, 500, 100); // Bắt đầu
-                
-                createGround(200, 450, 32); // Bệ nhỏ 1
-                createGround(350, 400, 32); // Bệ nhỏ 2
-                createGround(550, 350, 32); // Bệ nhỏ 3
-
-                createGround(700, 300, 100); // Đích
-                createGoal(750, 270);
-                fillSpikes();
-            } 
-            else if (level === 2) {
-                // Kỹ năng: Kiểm soát lực nhảy (Nhảy khe hẹp)
-                createGround(0, 500, 100);
-                
-                // Nhảy xa nhưng có trần nhà chặn trên đầu
-                createGround(200, 500, 64);
-                createGround(200, 300, 200, 100); // Trần nhà chặn
-                
-                createGround(400, 500, 64);
-                createGround(400, 350, 200, 100); // Trần nhà chặn tiếp theo
-
-                createGround(600, 500, 64);
-
-                createGround(750, 400, 50);
-                createGoal(750, 370);
-                fillSpikes();
             }
-            else if (level === 3) {
-                // Kỹ năng: Tốc độ và phản xạ (Cầu sập)
-                createGround(0, 500, 50);
-                
-                // Chuỗi bệ sập cách xa nhau
-                for(let i=0; i<6; i++) {
-                    let fBlock = this.add.tileSprite(150 + i*90, 500 - i*20, 32, 32, 'block');
-                    this.physics.add.existing(fBlock);
-                    this.fallingBlocks.add(fBlock);
+
+            // 2. Xáo trộn bảng (Giả lập người dùng bấm ngẫu nhiên N lần)
+            // Việc xáo trộn ngược từ trạng thái "Thắng" giúp chắc chắn màn này CÓ THỂ GIẢI ĐƯỢC
+            for (let i = 0; i < this.shuffleMoves; i++) {
+                let r = Phaser.Math.Between(0, this.gridSize - 1);
+                let c = Phaser.Math.Between(0, this.gridSize - 1);
+                this.toggleLogicOnly(r, c);
+            }
+
+            // 3. Vẽ hình ảnh dựa trên logic đã xáo trộn
+            for (let r = 0; r < this.gridSize; r++) {
+                this.gridSprites[r] = [];
+                for (let c = 0; c < this.gridSize; c++) {
+                    let x = startX + c * (tileSize + spacing);
+                    let y = startY + r * (tileSize + spacing);
+                    
+                    let texture = this.gridData[r][c] === 1 ? 'tile_on' : 'tile_off';
+                    let tile = this.add.sprite(x, y, texture).setInteractive({ useHandCursor: true });
+                    
+                    tile.on('pointerdown', () => this.onTileClick(r, c));
+                    this.gridSprites[r][c] = tile;
                 }
-
-                createGround(700, 380, 100);
-                createGoal(750, 350);
-                fillSpikes();
-            }
-            else if (level === 4) {
-                // Kỹ năng: Thả rơi tự do và hãm phanh
-                createGround(0, 150, 100);
-                
-                // Bức tường khổng lồ chặn ngang, phải lách qua khe hẹp bên dưới
-                createGround(200, 0, 32, 400); 
-                createGround(200, 500, 32, 100); 
-
-                // Tường thứ 2
-                createGround(400, 200, 32, 400);
-                createGround(400, 0, 32, 100);
-
-                // Tường thứ 3
-                createGround(600, 0, 32, 450);
-
-                createGround(700, 500, 100);
-                createGoal(750, 470);
-                fillSpikes();
-            }
-            else if (level === 5) {
-                // Kỹ năng: Tổng hợp - Ma trận Hardcore
-                createGround(0, 500, 50);
-                
-                // Trần thấp
-                createGround(120, 350, 100, 32); 
-                createGround(150, 500, 32); // Bệ hẹp dưới trần thấp
-                
-                // Bệ sập giữa không trung
-                let b1 = this.add.tileSprite(300, 450, 32, 32, 'block');
-                this.physics.add.existing(b1); this.fallingBlocks.add(b1);
-
-                let b2 = this.add.tileSprite(420, 350, 32, 32, 'block');
-                this.physics.add.existing(b2); this.fallingBlocks.add(b2);
-
-                // Bức tường cản cuối cùng
-                createGround(550, 200, 32, 400);
-                let b3 = this.add.tileSprite(550, 100, 32, 32, 'block'); // Chỗ đứng sập trên đỉnh tường
-                this.physics.add.existing(b3); this.fallingBlocks.add(b3);
-
-                createGround(700, 150, 100);
-                createGoal(750, 120);
-                fillSpikes();
-            } else {
-                createGround(0, 500, 800);
-                this.add.text(400, 300, 'CHÚC MỪNG BẠN ĐÃ PHÁ ĐẢO', { fontSize: '24px', fill: '#2ecc71', fontStyle: 'bold' }).setOrigin(0.5);
-                createGoal(750, 470);
             }
         }
 
-        update() {
-            let speed = 220; // Giảm tốc độ chạy một chút để dễ kiểm soát chính xác hơn
-            let jumpForce = -580; // Nhảy rất bốc
-
-            // Cải thiện cảm giác điều khiển trên không (Air Control)
-            if (this.cursors.left.isDown) {
-                this.player.setVelocityX(-speed);
-            } else if (this.cursors.right.isDown) {
-                this.player.setVelocityX(speed);
-            } else {
-                // Hãm phanh tức thì khi thả phím (Rất quan trọng trong Parkour khó)
-                this.player.setVelocityX(0);
-            }
-
-            // Nhảy
-            if (this.cursors.up.isDown && this.player.body.touching.down) {
-                this.player.setVelocityY(jumpForce);
-            }
-
-            if (this.player.y > 650) { this.die(); }
+        // Đảo trạng thái logic (Dùng khi tạo mảng xáo trộn đầu game)
+        toggleLogicOnly(r, c) {
+            const toggle = (row, col) => {
+                if (row >= 0 && row < this.gridSize && col >= 0 && col < this.gridSize) {
+                    this.gridData[row][col] = this.gridData[row][col] === 1 ? 0 : 1;
+                }
+            };
+            toggle(r, c); // Chính nó
+            toggle(r - 1, c); // Trên
+            toggle(r + 1, c); // Dưới
+            toggle(r, c - 1); // Trái
+            toggle(r, c + 1); // Phải
         }
 
-        die() {
-            this.physics.pause();
-            this.player.setTint(0xff0000); 
-            this.cameras.main.shake(150, 0.01);
-            this.time.delayedCall(400, () => {
-                this.scene.restart();
-            });
+        // Xử lý khi người chơi thực sự bấm
+        onTileClick(r, c) {
+            if (this.isSolving) return;
+
+            // Đảo logic
+            this.toggleLogicOnly(r, c);
+
+            // Cập nhật lại hình ảnh của tất cả các ô bị ảnh hưởng
+            this.updateSprites();
+
+            // Kiểm tra thắng
+            this.checkWinCondition();
         }
 
-        win() {
-            this.physics.pause();
-            this.player.setVisible(false);
+        updateSprites() {
+            for (let r = 0; r < this.gridSize; r++) {
+                for (let c = 0; c < this.gridSize; c++) {
+                    let tile = this.gridSprites[r][c];
+                    let texture = this.gridData[r][c] === 1 ? 'tile_on' : 'tile_off';
+                    tile.setTexture(texture);
+                }
+            }
+        }
+
+        checkWinCondition() {
+            let isWin = true;
+            for (let r = 0; r < this.gridSize; r++) {
+                for (let c = 0; c < this.gridSize; c++) {
+                    if (this.gridData[r][c] === 0) { // Nếu còn ô tắt
+                        isWin = false;
+                        break;
+                    }
+                }
+            }
+
+            if (isWin) {
+                this.isSolving = true;
+                this.add.text(400, 300, 'TUYỆT VỜI!', { fontSize: '64px', fill: '#f1c40f', fontStyle: 'bold' })
+                    .setOrigin(0.5).setShadow(3, 3, '#000', 5);
+                
+                this.time.delayedCall(1000, () => this.nextLevel(true)); // Thắng thì qua màn
+            }
+        }
+
+        // Xử lý khi bấm nút SKIP
+        skipLevel() {
+            if (this.isSolving) return;
+            this.isSolving = true;
+            this.nextLevel(false); // Skip qua màn
+        }
+
+        // Hàm chung xử lý qua màn & Hiện quảng cáo
+        nextLevel(isWin) {
             PokiSDK.gameplayStop();
 
-            let nextLevel = this.level + 1;
-            if (this.level >= highestLevel && nextLevel <= 50) {
-                highestLevel = nextLevel;
-                localStorage.setItem('stickman_unlocked_hc', highestLevel);
+            // Mở khóa màn tiếp theo
+            let nextLvl = this.level + 1;
+            if (this.level >= highestPuzzleLevel && nextLvl <= MAX_LEVEL) {
+                highestPuzzleLevel = nextLvl;
+                localStorage.setItem('puzzle_unlocked', highestPuzzleLevel);
             }
 
-            this.cameras.main.fade(500, 0, 0, 0);
-            this.time.delayedCall(500, () => {
-                PokiSDK.commercialBreak().then(() => {
-                    if (nextLevel <= 50) {
-                        this.scene.start('GameScene', { level: nextLevel });
-                    } else {
-                        this.scene.start('LobbyScene');
-                    }
-                });
+            // Gọi quảng cáo (Dù thắng hay Skip đều gọi)
+            PokiSDK.commercialBreak().then(() => {
+                if (nextLvl <= MAX_LEVEL) {
+                    this.scene.start('GameScene', { level: nextLvl });
+                } else {
+                    // Nếu đã là màn cuối
+                    this.scene.start('LobbyScene');
+                }
             });
         }
     }
@@ -308,10 +273,6 @@
         type: Phaser.AUTO,
         width: 800,
         height: 600,
-        physics: {
-            default: 'arcade',
-            arcade: { gravity: { y: 1400 }, debug: false } // Trọng lực rất cao để nhân vật rơi nhanh, dứt khoát
-        },
         scene: [BootScene, LobbyScene, GameScene]
     };
 
