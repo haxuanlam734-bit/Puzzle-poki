@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Puzzle Light - Poki Game</title>
+    <title>Puzzle Light - 20 Levels</title>
     <style>
         body { margin: 0; padding: 0; background-color: #0f0f1a; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden;}
         canvas { box-shadow: 0 0 40px rgba(0, 255, 255, 0.2); border-radius: 12px; border: 2px solid #2980b9; }
@@ -14,57 +14,56 @@
 <body>
 
 <script>
-    // --- LƯU TRỮ TIẾN TRÌNH ---
-    let highestPuzzleLevel = parseInt(localStorage.getItem('puzzle_unlocked')) || 1;
-    const MAX_LEVEL = 10;
+    // --- LƯU TRỮ TIẾN TRÌNH (20 MÀN) ---
+    let highestPuzzleLevel = parseInt(localStorage.getItem('puzzle_unlocked_20')) || 1;
+    const MAX_LEVEL = 20;
 
     PokiSDK.init().then(() => { console.log("Poki SDK init"); }).catch(() => { console.log("Poki SDK failed"); });
 
-    // --- SCENE TẠO HÌNH ẢNH (Không cần file ảnh) ---
+    // --- SCENE TẠO HÌNH ẢNH ---
     class BootScene extends Phaser.Scene {
         constructor() { super({ key: 'BootScene' }); }
         create() {
             let g = this.make.graphics({ x: 0, y: 0, add: false });
             
-            // Vẽ Ô đèn TẮT (Màu xám tối)
-            g.fillStyle(0x2c3e50); g.fillRoundedRect(0, 0, 64, 64, 8);
-            g.lineStyle(4, 0x34495e); g.strokeRoundedRect(0, 0, 64, 64, 8);
-            g.generateTexture('tile_off', 64, 64); g.clear();
+            // Vẽ Ô đèn TẮT
+            g.fillStyle(0x2c3e50); g.fillRoundedRect(0, 0, 54, 54, 6);
+            g.lineStyle(3, 0x34495e); g.strokeRoundedRect(0, 0, 54, 54, 6);
+            g.generateTexture('tile_off', 54, 54); g.clear();
 
-            // Vẽ Ô đèn SÁNG (Màu vàng neon)
-            g.fillStyle(0xf1c40f); g.fillRoundedRect(0, 0, 64, 64, 8);
-            g.lineStyle(4, 0xffeb3b); g.strokeRoundedRect(0, 0, 64, 64, 8);
-            g.generateTexture('tile_on', 64, 64); g.clear();
+            // Vẽ Ô đèn SÁNG
+            g.fillStyle(0xf1c40f); g.fillRoundedRect(0, 0, 54, 54, 6);
+            g.lineStyle(3, 0xffeb3b); g.strokeRoundedRect(0, 0, 54, 54, 6);
+            g.generateTexture('tile_on', 54, 54); g.clear();
 
             this.scene.start('LobbyScene');
         }
     }
 
-    // --- SẢNH CHỜ ---
+    // --- SẢNH CHỜ (HIỂN THỊ 20 MÀN) ---
     class LobbyScene extends Phaser.Scene {
         constructor() { super({ key: 'LobbyScene' }); }
         create() {
             this.cameras.main.setBackgroundColor('#1a1a2e');
             
-            this.add.text(400, 80, 'THẮP SÁNG TẤT CẢ', { fontSize: '48px', fill: '#f1c40f', fontStyle: 'bold' }).setOrigin(0.5);
-            this.add.text(400, 130, 'PUZZLE GIẢI ĐỐ', { fontSize: '24px', fill: '#00d2d3', fontStyle: 'bold' }).setOrigin(0.5);
+            this.add.text(400, 45, 'THẮP SÁNG TẤT CẢ (20 MÀN)', { fontSize: '36px', fill: '#f1c40f', fontStyle: 'bold' }).setOrigin(0.5);
 
             // Nút Reset
-            this.add.text(400, 530, '[ Xóa Dữ Liệu Chơi Lại ]', { fontSize: '16px', fill: '#95a5a6' })
+            this.add.text(400, 565, '[ Xóa Dữ Liệu Chơi Lại ]', { fontSize: '14px', fill: '#95a5a6' })
                 .setOrigin(0.5).setInteractive({ useHandCursor: true })
                 .on('pointerdown', () => {
-                    localStorage.setItem('puzzle_unlocked', 1);
+                    localStorage.setItem('puzzle_unlocked_20', 1);
                     highestPuzzleLevel = 1;
                     this.scene.restart();
                 });
 
-            // Lưới chọn 10 màn
-            let startX = 220, startY = 250;
+            // Lưới chọn 20 màn (4 hàng x 5 cột)
+            let startX = 220, startY = 135;
             for (let i = 1; i <= MAX_LEVEL; i++) {
                 let row = Math.floor((i - 1) / 5);
                 let col = (i - 1) % 5;
                 let x = startX + col * 90;
-                let y = startY + row * 90;
+                let y = startY + row * 95;
                 
                 let isLocked = i > highestPuzzleLevel; 
                 let bgColor = isLocked ? 0x2d3436 : 0x0984e3;
@@ -77,9 +76,9 @@
                        .on('pointerdown', () => this.scene.start('GameScene', { level: i }))
                        .on('pointerover', () => btn.setFillStyle(0x74b9ff))
                        .on('pointerout', () => btn.setFillStyle(0x0984e3));
-                    this.add.text(x, y, i.toString(), { fontSize: '28px', fill: textColor, fontStyle: 'bold' }).setOrigin(0.5);
+                    this.add.text(x, y, i.toString(), { fontSize: '24px', fill: textColor, fontStyle: 'bold' }).setOrigin(0.5);
                 } else {
-                    this.add.text(x, y, '🔒', { fontSize: '24px', fill: textColor }).setOrigin(0.5);
+                    this.add.text(x, y, '🔒', { fontSize: '22px', fill: textColor }).setOrigin(0.5);
                 }
             }
         }
@@ -91,7 +90,7 @@
         
         init(data) { 
             this.level = data.level; 
-            this.isSolving = false; // Khóa bấm khi đang chuyển màn
+            this.isSolving = false; 
         }
 
         create() {
@@ -99,37 +98,47 @@
             PokiSDK.gameplayStart();
             
             // Header UI
-            this.add.text(30, 20, `MÀN CHƠI: ${this.level}/${MAX_LEVEL}`, { fontSize: '24px', fill: '#00d2d3', fontStyle: 'bold' });
-            this.add.text(400, 35, 'Bấm vào 1 ô để đảo trạng thái ô đó và xung quanh', { fontSize: '16px', fill: '#a4b0be' }).setOrigin(0.5);
+            this.add.text(30, 20, `MÀN: ${this.level}/${MAX_LEVEL}`, { fontSize: '22px', fill: '#00d2d3', fontStyle: 'bold' });
+            this.add.text(400, 30, 'Bấm vào 1 ô để đảo trạng thái ô đó và xung quanh', { fontSize: '15px', fill: '#a4b0be' }).setOrigin(0.5);
 
-            // --- Nút Quay về Sảnh ---
-            this.add.text(680, 20, 'Sảnh ↩', { fontSize: '20px', fill: '#ff6b6b' })
+            // Nút Quay về Sảnh
+            this.add.text(700, 20, 'Sảnh ↩', { fontSize: '18px', fill: '#ff6b6b' })
                 .setInteractive({ useHandCursor: true })
                 .on('pointerdown', () => {
                     PokiSDK.gameplayStop();
                     this.scene.start('LobbyScene');
                 });
 
-            // --- Nút Skip (Xem quảng cáo) ---
-            let skipBtn = this.add.rectangle(400, 540, 200, 50, 0x8e44ad, 1).setInteractive({ useHandCursor: true });
-            this.add.text(400, 540, '⏭ SKIP (QUẢNG CÁO)', { fontSize: '18px', fill: '#fff', fontStyle: 'bold' }).setOrigin(0.5);
+            // Nút Skip (Xem quảng cáo)
+            let skipBtn = this.add.rectangle(400, 550, 180, 40, 0x8e44ad, 1).setInteractive({ useHandCursor: true });
+            this.add.text(400, 550, '⏭ SKIP (QUẢNG CÁO)', { fontSize: '16px', fill: '#fff', fontStyle: 'bold' }).setOrigin(0.5);
             
             skipBtn.on('pointerover', () => skipBtn.setFillStyle(0x9b59b6));
             skipBtn.on('pointerout', () => skipBtn.setFillStyle(0x8e44ad));
             skipBtn.on('pointerdown', () => this.skipLevel());
 
-            // --- Thiết lập độ khó (Kích thước lưới & số bước xáo trộn) ---
+            // --- BẢNG CẤU HÌNH 20 MÀN ---
             const levelConfigs = [
-                { size: 3, shuffle: 1 },  // Lv 1: Dễ nhất
-                { size: 3, shuffle: 2 },  // Lv 2
-                { size: 3, shuffle: 4 },  // Lv 3
-                { size: 4, shuffle: 3 },  // Lv 4
-                { size: 4, shuffle: 5 },  // Lv 5
-                { size: 4, shuffle: 8 },  // Lv 6
-                { size: 5, shuffle: 6 },  // Lv 7
-                { size: 5, shuffle: 10 }, // Lv 8
-                { size: 5, shuffle: 15 }, // Lv 9
-                { size: 5, shuffle: 25 }  // Lv 10: Siêu khó
+                { size: 3, shuffle: 1 },  // 1
+                { size: 3, shuffle: 2 },  // 2
+                { size: 3, shuffle: 3 },  // 3
+                { size: 3, shuffle: 5 },  // 4
+                { size: 4, shuffle: 4 },  // 5
+                { size: 4, shuffle: 6 },  // 6
+                { size: 4, shuffle: 8 },  // 7
+                { size: 4, shuffle: 10 }, // 8
+                { size: 4, shuffle: 12 }, // 9
+                { size: 5, shuffle: 8 },  // 10
+                { size: 5, shuffle: 12 }, // 11
+                { size: 5, shuffle: 15 }, // 12
+                { size: 5, shuffle: 18 }, // 13
+                { size: 5, shuffle: 21 }, // 14
+                { size: 5, shuffle: 24 }, // 15
+                { size: 5, shuffle: 27 }, // 16
+                { size: 5, shuffle: 30 }, // 17
+                { size: 5, shuffle: 33 }, // 18
+                { size: 5, shuffle: 36 }, // 19
+                { size: 5, shuffle: 40 }  // 20 (Cực khó)
             ];
 
             let conf = levelConfigs[this.level - 1];
@@ -140,32 +149,28 @@
         }
 
         createGrid() {
-            this.gridData = []; // Lưu trạng thái logic: 1 (Sáng), 0 (Tắt)
-            this.gridSprites = []; // Lưu hình ảnh hiển thị
+            this.gridData = []; 
+            this.gridSprites = []; 
 
-            let tileSize = 64;
-            let spacing = 10;
+            let tileSize = 54;
+            let spacing = 8;
             let boardSize = this.gridSize * tileSize + (this.gridSize - 1) * spacing;
             let startX = (800 - boardSize) / 2 + tileSize / 2;
-            let startY = (600 - boardSize) / 2 + tileSize / 2 + 20;
+            let startY = (600 - boardSize) / 2 + tileSize / 2 + 10;
 
-            // 1. Tạo bảng logic mặc định là SÁNG TẤT CẢ (Để đảm bảo chắc chắn có thể giải được)
             for (let r = 0; r < this.gridSize; r++) {
                 this.gridData[r] = [];
                 for (let c = 0; c < this.gridSize; c++) {
-                    this.gridData[r][c] = 1; // 1 = Sáng
+                    this.gridData[r][c] = 1; 
                 }
             }
 
-            // 2. Xáo trộn bảng (Giả lập người dùng bấm ngẫu nhiên N lần)
-            // Việc xáo trộn ngược từ trạng thái "Thắng" giúp chắc chắn màn này CÓ THỂ GIẢI ĐƯỢC
             for (let i = 0; i < this.shuffleMoves; i++) {
                 let r = Phaser.Math.Between(0, this.gridSize - 1);
                 let c = Phaser.Math.Between(0, this.gridSize - 1);
                 this.toggleLogicOnly(r, c);
             }
 
-            // 3. Vẽ hình ảnh dựa trên logic đã xáo trộn
             for (let r = 0; r < this.gridSize; r++) {
                 this.gridSprites[r] = [];
                 for (let c = 0; c < this.gridSize; c++) {
@@ -181,31 +186,23 @@
             }
         }
 
-        // Đảo trạng thái logic (Dùng khi tạo mảng xáo trộn đầu game)
         toggleLogicOnly(r, c) {
             const toggle = (row, col) => {
                 if (row >= 0 && row < this.gridSize && col >= 0 && col < this.gridSize) {
                     this.gridData[row][col] = this.gridData[row][col] === 1 ? 0 : 1;
                 }
             };
-            toggle(r, c); // Chính nó
-            toggle(r - 1, c); // Trên
-            toggle(r + 1, c); // Dưới
-            toggle(r, c - 1); // Trái
-            toggle(r, c + 1); // Phải
+            toggle(r, c); 
+            toggle(r - 1, c); 
+            toggle(r + 1, c); 
+            toggle(r, c - 1); 
+            toggle(r, c + 1); 
         }
 
-        // Xử lý khi người chơi thực sự bấm
         onTileClick(r, c) {
             if (this.isSolving) return;
-
-            // Đảo logic
             this.toggleLogicOnly(r, c);
-
-            // Cập nhật lại hình ảnh của tất cả các ô bị ảnh hưởng
             this.updateSprites();
-
-            // Kiểm tra thắng
             this.checkWinCondition();
         }
 
@@ -223,7 +220,7 @@
             let isWin = true;
             for (let r = 0; r < this.gridSize; r++) {
                 for (let c = 0; c < this.gridSize; c++) {
-                    if (this.gridData[r][c] === 0) { // Nếu còn ô tắt
+                    if (this.gridData[r][c] === 0) { 
                         isWin = false;
                         break;
                     }
@@ -232,37 +229,32 @@
 
             if (isWin) {
                 this.isSolving = true;
-                this.add.text(400, 300, 'TUYỆT VỜI!', { fontSize: '64px', fill: '#f1c40f', fontStyle: 'bold' })
+                this.add.text(400, 300, 'TUYỆT VỜI!', { fontSize: '56px', fill: '#f1c40f', fontStyle: 'bold' })
                     .setOrigin(0.5).setShadow(3, 3, '#000', 5);
                 
-                this.time.delayedCall(1000, () => this.nextLevel(true)); // Thắng thì qua màn
+                this.time.delayedCall(800, () => this.nextLevel()); 
             }
         }
 
-        // Xử lý khi bấm nút SKIP
         skipLevel() {
             if (this.isSolving) return;
             this.isSolving = true;
-            this.nextLevel(false); // Skip qua màn
+            this.nextLevel(); 
         }
 
-        // Hàm chung xử lý qua màn & Hiện quảng cáo
-        nextLevel(isWin) {
+        nextLevel() {
             PokiSDK.gameplayStop();
 
-            // Mở khóa màn tiếp theo
             let nextLvl = this.level + 1;
             if (this.level >= highestPuzzleLevel && nextLvl <= MAX_LEVEL) {
                 highestPuzzleLevel = nextLvl;
-                localStorage.setItem('puzzle_unlocked', highestPuzzleLevel);
+                localStorage.setItem('puzzle_unlocked_20', highestPuzzleLevel);
             }
 
-            // Gọi quảng cáo (Dù thắng hay Skip đều gọi)
             PokiSDK.commercialBreak().then(() => {
                 if (nextLvl <= MAX_LEVEL) {
                     this.scene.start('GameScene', { level: nextLvl });
                 } else {
-                    // Nếu đã là màn cuối
                     this.scene.start('LobbyScene');
                 }
             });
