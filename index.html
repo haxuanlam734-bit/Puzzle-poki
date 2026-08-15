@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stickman Hinokami Katana Legend</title>
+    <title>Stickman Combo Anime Fight - Stick Nodes Style</title>
     <!-- Poki SDK Official Script -->
     <script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
     <style>
@@ -15,7 +15,7 @@
             -webkit-user-select: none;
         }
         body {
-            background-color: #030508;
+            background-color: #020204;
             color: #fff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
@@ -26,13 +26,13 @@
         }
         #gameContainer {
             position: relative;
-            box-shadow: 0 0 50px rgba(255, 69, 0, 0.35);
+            box-shadow: 0 0 60px rgba(138, 43, 226, 0.4);
             border-radius: 12px;
             overflow: hidden;
-            border: 2px solid #ff4500;
+            border: 2px solid #8a2be2;
         }
         canvas {
-            background: linear-gradient(to bottom, #050508, #110914, #08040a);
+            background: #08070d;
             display: block;
         }
         #ui {
@@ -52,7 +52,7 @@
             width: 260px;
             height: 22px;
             background: rgba(255, 0, 0, 0.2);
-            border: 2px solid #ff4757;
+            border: 2px solid #a855f7;
             border-radius: 11px;
             overflow: hidden;
             margin-top: 4px;
@@ -60,20 +60,20 @@
         .hp-bar {
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, #ff4757, #ff6b81);
+            background: linear-gradient(90deg, #c084fc, #a855f7, #7e22ce);
             transition: width 0.15s ease;
         }
         .badge {
             background: rgba(15, 23, 42, 0.85);
-            border: 1.5px solid #ff4500;
-            color: #ffaa00;
+            border: 1.5px solid #a855f7;
+            color: #c084fc;
             padding: 8px 18px;
             border-radius: 20px;
             font-size: 15px;
-            box-shadow: 0 0 10px rgba(255, 69, 0, 0.4);
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
         }
         .stats-badge {
-            color: #ffda79;
+            color: #e9d5ff;
             font-size: 13px;
             margin-top: 4px;
         }
@@ -91,7 +91,7 @@
             width: 72px;
             height: 72px;
             background: rgba(15, 23, 42, 0.85);
-            border: 2px solid #ff4500;
+            border: 2px solid #a855f7;
             border-radius: 12px;
             display: flex;
             flex-direction: column;
@@ -108,7 +108,7 @@
             position: absolute;
             top: 4px;
             left: 6px;
-            background: #ff4500;
+            background: #a855f7;
             color: #fff;
             padding: 1px 6px;
             border-radius: 4px;
@@ -124,7 +124,7 @@
             justify-content: center;
             align-items: center;
             font-size: 15px;
-            color: #ffda79;
+            color: #c084fc;
         }
         #adOverlay {
             position: absolute;
@@ -140,7 +140,7 @@
             width: 50px;
             height: 50px;
             border: 5px solid rgba(255, 255, 255, 0.2);
-            border-top: 5px solid #ff4500;
+            border-top: 5px solid #a855f7;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             margin-bottom: 20px;
@@ -158,39 +158,39 @@
 
     <div id="ui">
         <div>
-            HP HERO:
+            HP HERO (ZEN):
             <div class="hp-bar-container">
                 <div id="playerHpBar" class="hp-bar"></div>
             </div>
-            <div class="stats-badge">HP Tối Đa: <span id="maxHpStat">300</span> | Sát Thương: <span id="dmgStat">25</span> (+<span id="killBonusStat">0</span> từ diệt Zombie)</div>
+            <div class="stats-badge">HP Max: <span id="maxHpStat">300</span> | Attack: <span id="dmgStat">25</span> (+<span id="killBonusStat">0</span>)</div>
         </div>
         <div class="badge">
-            WAVE: <span id="levelNum" style="color:#fff;">1</span> | ZOMBIE: <span id="zombieCount">0</span>
+            WAVE: <span id="levelNum" style="color:#fff;">1</span> | FLYING ZOMBIES: <span id="zombieCount">0</span>
         </div>
     </div>
 
     <div id="skillsHUD">
         <div class="skill-box">
             <span class="skill-key">L-CLICK</span>
-            <span>Chém Hoả Thần</span>
+            <span>Combo Katana</span>
         </div>
         <div class="skill-box">
-            <span class="skill-key" style="background:#ff6b81;">E</span>
-            <span>Lướt Nhanh (No CD)</span>
+            <span class="skill-key" style="background:#38bdf8;">E</span>
+            <span>Teleport / Dash</span>
         </div>
         <div class="skill-box">
             <span class="skill-key">1</span>
-            <span>Chém Liên Hoàn</span>
+            <span>Anime Flash Slash</span>
             <div id="cd1" class="cooldown-overlay" style="display:none;"></div>
         </div>
         <div class="skill-box">
             <span class="skill-key">2</span>
-            <span>Chém Vô Hình</span>
+            <span>Dimension Slash</span>
             <div id="cd2" class="cooldown-overlay" style="display:none;"></div>
         </div>
         <div class="skill-box">
             <span class="skill-key">3</span>
-            <span>Sóng Kiếm Lửa</span>
+            <span>Energy Wave</span>
             <div id="cd3" class="cooldown-overlay" style="display:none;"></div>
         </div>
     </div>
@@ -198,7 +198,7 @@
     <div id="adOverlay">
         <div class="spinner"></div>
         <h2 style="color: #fff; font-size: 24px; margin-bottom: 10px;">ĐANG TẢI QUẢNG CÁO POKI...</h2>
-        <p style="color: #aaa; font-size: 14px;">Chuẩn bị bước vào Wave tiếp theo!</p>
+        <p style="color: #aaa; font-size: 14px;">Sẵn sàng chiến đấu tiếp theo!</p>
     </div>
 </div>
 
@@ -226,19 +226,21 @@ const adOverlay = document.getElementById('adOverlay');
 
 // === GAME ENGINE VARIABLES ===
 const GROUND_Y = 470;
-const GRAVITY = 0.65;
+const GRAVITY = 0.6;
 
 let currentLevel = 1;
 let gameOver = false;
 let levelCleared = false;
 let isPausedForAd = false;
 let animFrameCount = 0;
-let totalZombiesKilled = 0; // Đếm tổng số zombie đã tiêu diệt
+let totalZombiesKilled = 0;
+let screenShake = 0;
+let impactFrameTimer = 0;
 
 const keys = {};
 const mouse = { x: 0, y: 0 };
 
-// === PLAYER OBJECT ===
+// === PLAYER OBJECT (STICKMAN HERO - ZEN STYLE) ===
 const player = {
     x: 150,
     y: GROUND_Y,
@@ -252,7 +254,11 @@ const player = {
     isGrounded: true,
     isAttacking: false,
     attackTimer: 0,
+    attackCombo: 0,
     
+    // Ghost Trails (Bóng mờ tốc độ Stick Nodes)
+    ghosts: [],
+
     // Cooldowns
     cooldowns: { skill1: 0, skill2: 0, skill3: 0 },
 
@@ -260,16 +266,13 @@ const player = {
     isOmniSlashing: false,
     omniTimer: 0,
     
-    // Skill 2
     isJudgmentCutActive: false,
     judgmentTimer: 0,
     vortexX: 0,
     vortexY: 0,
 
     get currentDamage() {
-        // Cứ tiêu diệt 2 con zombie được +1 damage
-        const bonusDamage = Math.floor(totalZombiesKilled / 2);
-        return this.baseDamage + bonusDamage;
+        return this.baseDamage + Math.floor(totalZombiesKilled / 2);
     },
 
     resetPosition() {
@@ -282,6 +285,7 @@ const player = {
         this.isAttacking = false;
         this.isOmniSlashing = false;
         this.isJudgmentCutActive = false;
+        this.ghosts = [];
         this.cooldowns = { skill1: 0, skill2: 0, skill3: 0 };
     },
 
@@ -289,35 +293,46 @@ const player = {
         this.maxHp += 80;
         this.baseDamage += 3;
         this.hp = this.maxHp;
+    },
+
+    addGhost() {
+        this.ghosts.push({
+            x: this.x,
+            y: this.y,
+            facing: this.facing,
+            alpha: 0.6,
+            isAttacking: this.isAttacking
+        });
     }
 };
 
 // === ENTITY ARRAYS ===
 let zombies = [];
-let flameParticles = [];
+let energyParticles = [];
 let swordWaves = [];
 let impactStars = [];
-let flameSlashes = [];
+let animeSlashes = [];
 
-// === ZOMBIE CLASS ===
-class Zombie {
+// === FLYING & FIGHTING ZOMBIE CLASS (ARMAGON STYLE) ===
+class FlyingZombie {
     constructor(x, wave) {
         this.x = x;
-        this.y = GROUND_Y;
+        this.y = Math.random() < 0.6 ? GROUND_Y - 100 - Math.random() * 200 : GROUND_Y;
         this.vx = 0;
         this.vy = 0;
         
-        this.maxHp = 120 + (wave - 1) * 110; 
+        this.maxHp = 110 + (wave - 1) * 100; 
         this.hp = this.maxHp;
-        this.damage = 4 + wave * 0.8;
-        this.speed = 1.6 + Math.random() * 1.0;
+        this.damage = 5 + wave * 0.8;
+        this.speed = 2.2 + Math.random() * 1.2;
         
-        this.isFloating = false;
-        this.floatX = 0;
-        this.floatY = 0;
+        this.isFlying = true;
         this.attackCooldown = 0;
         this.stunTimer = 0;
         this.animOffset = Math.random() * 100;
+        this.facing = 1;
+        this.isAttacking = false;
+        this.attackTimer = 0;
     }
 
     update() {
@@ -326,28 +341,36 @@ class Zombie {
             return;
         }
 
-        if (this.isFloating) {
-            this.x += (this.floatX - this.x) * 0.2;
-            this.y += (this.floatY - this.y) * 0.2;
-            return;
-        }
-
-        if (this.y < GROUND_Y) {
-            this.vy += GRAVITY;
-            this.y += this.vy;
-            if (this.y >= GROUND_Y) {
-                this.y = GROUND_Y;
-                this.vy = 0;
-            }
-        }
-
         const dx = player.x - this.x;
-        this.x += Math.sign(dx) * this.speed;
+        const dy = (player.y - 30) - this.y;
+        const dist = Math.hypot(dx, dy);
 
-        if (Math.abs(dx) < 25 && Math.abs(player.y - this.y) < 30 && this.attackCooldown <= 0) {
+        this.facing = dx > 0 ? 1 : -1;
+
+        // Bay và áp sát Player liên tục
+        if (dist > 35) {
+            this.x += (dx / dist) * this.speed;
+            this.y += (dy / dist) * (this.speed * 0.85);
+        }
+
+        // Zombie vung đòn combo tấn công Player y hệt video
+        if (dist < 45 && this.attackCooldown <= 0) {
+            this.isAttacking = true;
+            this.attackTimer = 12;
+            this.attackCooldown = 50;
+
             player.hp -= this.damage;
-            this.attackCooldown = 60;
-            addImpactStar(player.x, player.y - 20);
+            screenShake = 6;
+            impactFrameTimer = 2; // Impact frame
+            
+            // Viền năng lượng đỏ khi Zombie chém
+            addAnimeSlash(player.x, player.y - 20, Math.random() * Math.PI * 2, 60, '#ff0055');
+            addImpactStar(player.x, player.y - 20, '#ff0055');
+        }
+
+        if (this.isAttacking) {
+            this.attackTimer--;
+            if (this.attackTimer <= 0) this.isAttacking = false;
         }
 
         if (this.attackCooldown > 0) this.attackCooldown--;
@@ -357,77 +380,88 @@ class Zombie {
         ctx.save();
         ctx.translate(this.x, this.y);
 
-        const walkCycle = Math.sin((animFrameCount + this.animOffset) * 0.15);
-        ctx.strokeStyle = '#2ed573';
-        ctx.lineWidth = 3.5;
+        const floatCycle = Math.sin((animFrameCount + this.animOffset) * 0.1) * 5;
+
+        // Thân thể Zombie Đỏ/Đen ngầu
+        ctx.strokeStyle = '#ff2a2a';
+        ctx.lineWidth = 4;
         ctx.lineCap = 'round';
 
-        // Đầu Zombie
+        // Đầu
         ctx.beginPath();
-        ctx.arc(0, -38, 9, 0, Math.PI * 2);
+        ctx.arc(0, -38 + floatCycle, 9, 0, Math.PI * 2);
         ctx.stroke();
 
-        // Mắt Đỏ
-        ctx.fillStyle = '#ff4757';
+        // Mắt Đỏ Phát Sáng
+        ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.arc(player.x > this.x ? 3 : -3, -40, 2.5, 0, Math.PI * 2);
+        ctx.arc(this.facing * 3, -40 + floatCycle, 3, 0, Math.PI * 2);
         ctx.fill();
 
         // Thân
         ctx.beginPath();
-        ctx.moveTo(0, -29);
-        ctx.lineTo(0, -10);
-
-        const armDir = player.x > this.x ? 1 : -1;
-        ctx.moveTo(0, -22);
-        ctx.lineTo(14 * armDir, -18 + walkCycle * 4);
-        ctx.moveTo(0, -22);
-        ctx.lineTo(12 * armDir, -10 - walkCycle * 4);
-
-        ctx.moveTo(0, -10);
-        ctx.lineTo(-8 + walkCycle * 6, 0);
-        ctx.moveTo(0, -10);
-        ctx.lineTo(8 - walkCycle * 6, 0);
+        ctx.moveTo(0, -29 + floatCycle);
+        ctx.lineTo(0, -10 + floatCycle);
         ctx.stroke();
 
-        // Thanh máu
+        // Tay võ thuật vung chém
+        ctx.beginPath();
+        if (this.isAttacking) {
+            ctx.moveTo(0, -22 + floatCycle);
+            ctx.lineTo(22 * this.facing, -18 + floatCycle);
+            ctx.strokeStyle = '#ff0055';
+        } else {
+            ctx.moveTo(0, -22 + floatCycle);
+            ctx.lineTo(14 * this.facing, -10 + floatCycle);
+            ctx.moveTo(0, -22 + floatCycle);
+            ctx.lineTo(-12 * this.facing, -5 + floatCycle);
+        }
+        ctx.stroke();
+
+        // Chân co gập khi bay
+        ctx.strokeStyle = '#ff2a2a';
+        ctx.beginPath();
+        ctx.moveTo(0, -10 + floatCycle);
+        ctx.lineTo(-8 * this.facing, 4 + floatCycle);
+        ctx.moveTo(0, -10 + floatCycle);
+        ctx.lineTo(8 * this.facing, 6 + floatCycle);
+        ctx.stroke();
+
+        // Thanh Máu
         ctx.fillStyle = 'rgba(0,0,0,0.6)';
-        ctx.fillRect(-18, -54, 36, 5);
-        ctx.fillStyle = '#ff4757';
-        ctx.fillRect(-18, -54, Math.max(0, (this.hp / this.maxHp) * 36), 5);
+        ctx.fillRect(-18, -54 + floatCycle, 36, 5);
+        ctx.fillStyle = '#ff0055';
+        ctx.fillRect(-18, -54 + floatCycle, Math.max(0, (this.hp / this.maxHp) * 36), 5);
 
         ctx.restore();
     }
 }
 
-// === HIỆU ỨNG TIA LỬA HINOKAMI (GIỐNG ẢNH TANJIRO) ===
-function createFlameFlakes(x, y, count) {
+// === VFX PARTICLES & SLASHES ===
+function createEnergyParticles(x, y, count, color = '#a855f7') {
     for (let i = 0; i < count; i++) {
-        flameParticles.push({
-            x: x + (Math.random() - 0.5) * 40,
-            y: y + (Math.random() - 0.5) * 40,
-            vx: (Math.random() - 0.5) * 8,
-            vy: (Math.random() - 0.5) * 8 - 2,
-            size: 3 + Math.random() * 5,
-            life: 14 + Math.random() * 10,
-            maxLife: 24,
-            rotation: Math.random() * Math.PI * 2,
-            vRot: (Math.random() - 0.5) * 0.3
+        energyParticles.push({
+            x: x + (Math.random() - 0.5) * 20,
+            y: y + (Math.random() - 0.5) * 20,
+            vx: (Math.random() - 0.5) * 12,
+            vy: (Math.random() - 0.5) * 12,
+            size: 2 + Math.random() * 4,
+            life: 12 + Math.random() * 10,
+            color
         });
     }
 }
 
-function addFlameSlash(x, y, angle, radius = 80, scale = 1) {
-    flameSlashes.push({
-        x, y, angle, radius, scale,
-        life: 12,
-        maxLife: 12
+function addAnimeSlash(x, y, angle, radius = 80, color = '#a855f7') {
+    animeSlashes.push({
+        x, y, angle, radius, color,
+        life: 8,
+        maxLife: 8
     });
-    createFlameFlakes(x, y, 8);
 }
 
-function addImpactStar(x, y) {
-    impactStars.push({ x, y, life: 10, maxLife: 10 });
+function addImpactStar(x, y, color = '#ffffff') {
+    impactStars.push({ x, y, color, life: 8, maxLife: 8 });
 }
 
 // === LEVEL SETUP ===
@@ -436,16 +470,16 @@ function setupLevel(lvl) {
     gameOver = false;
     levelCleared = false;
     zombies = [];
-    flameParticles = [];
+    energyParticles = [];
     swordWaves = [];
     impactStars = [];
-    flameSlashes = [];
+    animeSlashes = [];
 
     const zombieCount = 8 + lvl * 4;
 
     for (let i = 0; i < zombieCount; i++) {
         const spawnX = Math.random() < 0.5 ? -60 - Math.random() * 500 : canvas.width + 60 + Math.random() * 500;
-        zombies.push(new Zombie(spawnX, lvl));
+        zombies.push(new FlyingZombie(spawnX, lvl));
     }
 
     player.resetPosition();
@@ -464,38 +498,40 @@ window.addEventListener('keydown', (e) => {
     if ((e.key.toLowerCase() === 'w' || e.code === 'Space') && player.isGrounded) {
         player.vy = -14.5;
         player.isGrounded = false;
-        createFlameFlakes(player.x, player.y, 6);
+        createEnergyParticles(player.x, player.y, 8, '#c084fc');
     }
 
     const now = Date.now();
 
-    // CHIÊU E: LƯỚT NO CD + STUN 0.3S
+    // CHIÊU E: TELEPORT / DASH NO CD (TỐC BIẾN & TẠO BÓNG MỜ)
     if (e.key.toLowerCase() === 'e') {
-        createFlameFlakes(player.x, player.y - 20, 12);
+        player.addGhost();
+        createEnergyParticles(player.x, player.y - 20, 15, '#38bdf8');
         
         player.x = Math.max(30, Math.min(canvas.width - 30, mouse.x));
         player.y = Math.max(50, Math.min(GROUND_Y, mouse.y));
         player.vy = 0;
 
-        addFlameSlash(player.x, player.y - 20, Math.PI / 4, 60, 0.8);
-        addImpactStar(player.x, player.y - 20);
+        player.addGhost();
+        addAnimeSlash(player.x, player.y - 20, Math.PI / 4, 70, '#38bdf8');
+        addImpactStar(player.x, player.y - 20, '#38bdf8');
 
         zombies.forEach(z => {
-            if (Math.hypot(z.x - player.x, z.y - player.y) < 100) {
+            if (Math.hypot(z.x - player.x, z.y - player.y) < 110) {
                 z.stunTimer = 18;
-                createFlameFlakes(z.x, z.y - 20, 5);
+                createEnergyParticles(z.x, z.y - 20, 6, '#38bdf8');
             }
         });
     }
 
-    // Skill 1: Chém Liên Hoàn
+    // Skill 1: Anime Flash Slash
     if (e.key === '1' && now > player.cooldowns.skill1 && zombies.length > 0) {
         player.cooldowns.skill1 = now + 4500;
         player.isOmniSlashing = true;
         player.omniTimer = 26;
     }
 
-    // Skill 2: Vô Hình Thiên Kiếm (Chém Lửa Hinokami)
+    // Skill 2: Dimension Slash (Vô Hình Thiên Kiếm Tím Anime)
     if (e.key === '2' && now > player.cooldowns.skill2 && zombies.length > 0) {
         player.cooldowns.skill2 = now + 8000;
         player.isJudgmentCutActive = true;
@@ -504,15 +540,15 @@ window.addEventListener('keydown', (e) => {
         player.vortexY = 180;
     }
 
-    // Skill 3: Sóng Kiếm Lửa
+    // Skill 3: Energy Wave (Sóng Kiếm Năng Lượng)
     if (e.key === '3' && now > player.cooldowns.skill3) {
         player.cooldowns.skill3 = now + 3500;
         swordWaves.push({
             x: player.x,
             y: player.y - 20,
             dir: player.facing,
-            speed: 18,
-            radius: 55
+            speed: 20,
+            radius: 60
         });
     }
 });
@@ -540,7 +576,8 @@ canvas.addEventListener('mousedown', (e) => {
 
         if (!player.isAttacking) {
             player.isAttacking = true;
-            player.attackTimer = 10;
+            player.attackTimer = 8;
+            player.attackCombo = (player.attackCombo + 1) % 3;
             performNormalSlash();
         }
     }
@@ -548,17 +585,22 @@ canvas.addEventListener('mousedown', (e) => {
 
 // === ATTACK LOGIC ===
 function performNormalSlash() {
-    const attackRange = 100;
+    const attackRange = 110;
     player.facing = mouse.x > player.x ? 1 : -1;
+    player.addGhost();
+
+    screenShake = 4;
+    impactFrameTimer = 1;
 
     const angle = player.facing === 1 ? -Math.PI / 6 : Math.PI + Math.PI / 6;
-    addFlameSlash(player.x + player.facing * 30, player.y - 25, angle, 90, 1.2);
+    addAnimeSlash(player.x + player.facing * 30, player.y - 25, angle, 90, '#c084fc');
 
     zombies.forEach(z => {
-        if (Math.abs(z.x - player.x) < attackRange && Math.abs(z.y - player.y) < 60) {
+        if (Math.abs(z.x - player.x) < attackRange && Math.abs(z.y - player.y) < 80) {
             z.hp -= player.currentDamage;
-            z.vx = player.facing * 4;
-            addImpactStar(z.x, z.y - 20);
+            z.vx = player.facing * 5;
+            addImpactStar(z.x, z.y - 20, '#ffffff');
+            createEnergyParticles(z.x, z.y - 20, 8, '#c084fc');
         }
     });
 }
@@ -592,14 +634,18 @@ function update() {
     if (gameOver || levelCleared || isPausedForAd) return;
     animFrameCount++;
 
-    // 1. Movement
+    if (screenShake > 0) screenShake *= 0.85;
+
+    // Movement
     if (keys['a'] || keys['arrowleft']) {
         player.x -= player.speed;
         player.facing = -1;
+        if (animFrameCount % 3 === 0) player.addGhost();
     }
     if (keys['d'] || keys['arrowright']) {
         player.x += player.speed;
         player.facing = 1;
+        if (animFrameCount % 3 === 0) player.addGhost();
     }
     player.x = Math.max(20, Math.min(canvas.width - 20, player.x));
 
@@ -613,7 +659,14 @@ function update() {
         }
     }
 
-    // 2. Skill 1: Omni-Slash
+    // Update Ghost Trails
+    for (let i = player.ghosts.length - 1; i >= 0; i--) {
+        let g = player.ghosts[i];
+        g.alpha -= 0.08;
+        if (g.alpha <= 0) player.ghosts.splice(i, 1);
+    }
+
+    // Skill 1: Omni Slash
     if (player.isOmniSlashing) {
         player.omniTimer--;
         if (zombies.length > 0 && player.omniTimer % 2 === 0) {
@@ -622,7 +675,9 @@ function update() {
             player.y = randomZombie.y;
             randomZombie.hp -= player.currentDamage * 0.5;
             
-            addFlameSlash(randomZombie.x, randomZombie.y - 20, Math.random() * Math.PI * 2, 70, 0.9);
+            player.addGhost();
+            screenShake = 5;
+            addAnimeSlash(randomZombie.x, randomZombie.y - 20, Math.random() * Math.PI * 2, 75, '#e9d5ff');
             addImpactStar(randomZombie.x, randomZombie.y - 20);
         }
         if (player.omniTimer <= 0) {
@@ -631,32 +686,25 @@ function update() {
         }
     }
 
-    // 3. Skill 2: Vô Hình Thiên Kiếm Lửa Hinokami
+    // Skill 2: Dimension Cut
     if (player.isJudgmentCutActive) {
         player.judgmentTimer--;
-        player.vx = 0;
 
         zombies.forEach(z => {
-            z.isFloating = true;
-            z.floatX = player.vortexX + (Math.random() - 0.5) * 80;
-            z.floatY = player.vortexY + (Math.random() - 0.5) * 60;
-
-            z.hp -= 0.85 + currentLevel * 0.15;
+            z.x += (player.vortexX - z.x) * 0.1;
+            z.y += (player.vortexY - z.y) * 0.1;
+            z.hp -= 0.9 + currentLevel * 0.15;
         });
 
         if (player.judgmentTimer % 2 === 0) {
-            const cx = player.vortexX + (Math.random() - 0.5) * 110;
-            const cy = player.vortexY + (Math.random() - 0.5) * 90;
+            const cx = player.vortexX + (Math.random() - 0.5) * 120;
+            const cy = player.vortexY + (Math.random() - 0.5) * 100;
             const angle = Math.random() * Math.PI * 2;
-            addFlameSlash(cx, cy, angle, 85, 1.1);
+            addAnimeSlash(cx, cy, angle, 90, '#c084fc');
         }
 
         if (player.judgmentTimer <= 0) {
             player.isJudgmentCutActive = false;
-            zombies.forEach(z => {
-                z.isFloating = false;
-                z.vy = 4;
-            });
         }
     }
 
@@ -665,15 +713,15 @@ function update() {
         if (player.attackTimer <= 0) player.isAttacking = false;
     }
 
-    // 4. Update Sóng Kiếm Lửa (Skill 3)
+    // Skill 3: Sword Wave
     for (let i = swordWaves.length - 1; i >= 0; i--) {
         let w = swordWaves[i];
         w.x += w.dir * w.speed;
 
-        createFlameFlakes(w.x, w.y, 2);
+        createEnergyParticles(w.x, w.y, 2, '#a855f7');
 
         zombies.forEach(z => {
-            if (Math.hypot(z.x - w.x, z.y - w.y) < w.radius + 15) {
+            if (Math.hypot(z.x - w.x, z.y - w.y) < w.radius + 20) {
                 z.hp -= player.currentDamage * 1.1;
                 addImpactStar(z.x, z.y - 20);
             }
@@ -682,27 +730,27 @@ function update() {
         if (w.x < -50 || w.x > canvas.width + 50) swordWaves.splice(i, 1);
     }
 
-    // 5. Update Zombies & Tính năng: 2 Zombies tiêu diệt = +1 Sức mạnh
+    // Zombies Update & Kill Bonus (+1 Damage / 2 Kills)
     for (let i = zombies.length - 1; i >= 0; i--) {
         let z = zombies[i];
         z.update();
 
         if (z.hp <= 0) {
-            totalZombiesKilled++; // Tăng tổng số zombie diệt
-            addImpactStar(z.x, z.y - 20);
-            createFlameFlakes(z.x, z.y - 20, 15);
+            totalZombiesKilled++;
+            screenShake = 8;
+            addImpactStar(z.x, z.y - 20, '#c084fc');
+            createEnergyParticles(z.x, z.y - 20, 18, '#a855f7');
             zombies.splice(i, 1);
         }
     }
 
-    // 6. Update Visual Particles
-    for (let i = flameParticles.length - 1; i >= 0; i--) {
-        let p = flameParticles[i];
+    // Particles Update
+    for (let i = energyParticles.length - 1; i >= 0; i--) {
+        let p = energyParticles[i];
         p.x += p.vx;
         p.y += p.vy;
-        p.rotation += p.vRot;
         p.life--;
-        if (p.life <= 0) flameParticles.splice(i, 1);
+        if (p.life <= 0) energyParticles.splice(i, 1);
     }
 
     for (let i = impactStars.length - 1; i >= 0; i--) {
@@ -711,10 +759,10 @@ function update() {
         if (s.life <= 0) impactStars.splice(i, 1);
     }
 
-    for (let i = flameSlashes.length - 1; i >= 0; i--) {
-        let fs = flameSlashes[i];
+    for (let i = animeSlashes.length - 1; i >= 0; i--) {
+        let fs = animeSlashes[i];
         fs.life--;
-        if (fs.life <= 0) flameSlashes.splice(i, 1);
+        if (fs.life <= 0) animeSlashes.splice(i, 1);
     }
 
     // State Checks
@@ -757,35 +805,23 @@ function updateCooldownHUD() {
     });
 }
 
-// === HAM DRAW DUONG CHEM HOA THAN (HINOKAMI KAGURA SLAHSES) ===
-function drawHinokamiSlashArc(ctx, radius, scale) {
-    ctx.scale(scale, scale);
-
-    // Lớp 1: Viền Đen Ngoại Cảnh (Black Contour Outlines)
-    ctx.lineWidth = 18;
+// === DRAW ANIME SLASH ARC (VỆT CHÉM NĂNG LƯỢNG) ===
+function drawAnimeSlashArc(ctx, radius, color) {
+    ctx.lineWidth = 14;
     ctx.strokeStyle = '#000000';
     ctx.lineCap = 'round';
     ctx.beginPath();
     ctx.arc(0, 0, radius, -Math.PI / 3, Math.PI / 3);
     ctx.stroke();
 
-    // Lớp 2: Quầng Lửa Đỏ Rực (Inner Crimson Red Flame)
-    ctx.lineWidth = 13;
-    ctx.strokeStyle = '#d63031';
-    ctx.beginPath();
-    ctx.arc(0, 0, radius, -Math.PI / 3, Math.PI / 3);
-    ctx.stroke();
-
-    // Lớp 3: Bùng Lửa Cam Sáng (Orange Flame)
     ctx.lineWidth = 8;
-    ctx.strokeStyle = '#ff7675';
+    ctx.strokeStyle = color;
     ctx.beginPath();
     ctx.arc(0, 0, radius, -Math.PI / 3, Math.PI / 3);
     ctx.stroke();
 
-    // Lớp 4: Lõi Trắng Vàng Sáng Chói (Bright Core)
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = '#fff200';
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#ffffff';
     ctx.beginPath();
     ctx.arc(0, 0, radius, -Math.PI / 3, Math.PI / 3);
     ctx.stroke();
@@ -793,48 +829,87 @@ function drawHinokamiSlashArc(ctx, radius, scale) {
 
 // === RENDERING ENGINE ===
 function draw() {
+    ctx.save();
+
+    // Rung màn hình (Screen Shake)
+    if (screenShake > 0.5) {
+        const rx = (Math.random() - 0.5) * screenShake * 2;
+        const ry = (Math.random() - 0.5) * screenShake * 2;
+        ctx.translate(rx, ry);
+    }
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // 1. Mặt đất
-    ctx.fillStyle = '#0a0e1a';
+    // Impact Frame chớp sáng tương phản
+    if (impactFrameTimer > 0) {
+        impactFrameTimer--;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+        return;
+    }
+
+    // Mặt đất & Grid Neon
+    ctx.fillStyle = '#08070d';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#0f0c1b';
     ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
-    ctx.strokeStyle = '#ff4500';
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#8a2be2';
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(0, GROUND_Y);
     ctx.lineTo(canvas.width, GROUND_Y);
     ctx.stroke();
 
-    // 2. Sóng Kiếm Lửa (Skill 3)
+    // Sóng Kiếm Năng Lượng (Skill 3)
     swordWaves.forEach(w => {
         ctx.save();
         ctx.translate(w.x, w.y);
         ctx.rotate(w.dir === 1 ? 0 : Math.PI);
-        drawHinokamiSlashArc(ctx, w.radius, 1.2);
+        drawAnimeSlashArc(ctx, w.radius, '#a855f7');
         ctx.restore();
     });
 
-    // 3. Đường Chém Hoả Thần Hinokami (Hiệu ứng giống ảnh Tanjiro)
-    flameSlashes.forEach(fs => {
+    // Đường Chém Anime Slashes
+    animeSlashes.forEach(fs => {
         ctx.save();
         ctx.translate(fs.x, fs.y);
         ctx.rotate(fs.angle);
-        drawHinokamiSlashArc(ctx, fs.radius, fs.scale);
+        drawAnimeSlashArc(ctx, fs.radius, fs.color);
         ctx.restore();
     });
 
-    // 4. Vẽ Zombies
+    // Zombies Bay & Đánh Nhau
     zombies.forEach(z => z.draw());
 
-    // 5. Cử Động Stickman Hero & Katana
+    // DRAW GHOST TRAILS (BÓNG MỜ STICK NODES)
+    player.ghosts.forEach(g => {
+        ctx.save();
+        ctx.translate(g.x, g.y);
+        ctx.globalAlpha = g.alpha * 0.4;
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+
+        ctx.beginPath();
+        ctx.arc(0, -42, 9, 0, Math.PI * 2);
+        ctx.moveTo(0, -33); ctx.lineTo(0, -12);
+        ctx.moveTo(0, -12); ctx.lineTo(-10 * g.facing, 0);
+        ctx.moveTo(0, -12); ctx.lineTo(10 * g.facing, 0);
+        ctx.stroke();
+        ctx.restore();
+    });
+
+    // DRAW COOL STICKMAN HERO (ZEN)
     ctx.save();
     ctx.translate(player.x, player.y);
 
     const isMoving = keys['a'] || keys['d'] || keys['arrowleft'] || keys['arrowright'];
-    const runCycle = isMoving ? Math.sin(animFrameCount * 0.25) : 0;
+    const runCycle = isMoving ? Math.sin(animFrameCount * 0.3) : 0;
 
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 4.5;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
@@ -843,22 +918,28 @@ function draw() {
     ctx.arc(0, -42, 9, 0, Math.PI * 2);
     ctx.stroke();
 
+    // Mắt Tím Anime
+    ctx.fillStyle = '#c084fc';
+    ctx.beginPath();
+    ctx.arc(player.facing * 3, -43, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
     // Thân
     ctx.beginPath();
     ctx.moveTo(0, -33);
     ctx.lineTo(0, -12);
     ctx.stroke();
 
-    // Chân
+    // Chân Dáng Đứng/Bay Ngầu
     ctx.beginPath();
     if (!player.isGrounded) {
         ctx.moveTo(0, -12);
-        ctx.lineTo(-10 * player.facing, -4);
-        ctx.lineTo(-6 * player.facing, 8);
+        ctx.lineTo(-12 * player.facing, -2);
+        ctx.lineTo(-6 * player.facing, 10);
 
         ctx.moveTo(0, -12);
-        ctx.lineTo(8 * player.facing, -2);
-        ctx.lineTo(12 * player.facing, 10);
+        ctx.lineTo(10 * player.facing, -4);
+        ctx.lineTo(14 * player.facing, 8);
     } else {
         ctx.moveTo(0, -12);
         ctx.lineTo(-10 * player.facing + runCycle * 8, -2);
@@ -870,46 +951,46 @@ function draw() {
     }
     ctx.stroke();
 
-    // Tay & Katana Lửa
+    // Tay & Kiếm Katana Tím Năng Lượng Dài
     ctx.beginPath();
     if (player.isAttacking) {
         ctx.moveTo(0, -26);
-        ctx.lineTo(16 * player.facing, -22);
+        ctx.lineTo(18 * player.facing, -20);
         ctx.stroke();
 
-        ctx.strokeStyle = '#ff4500';
-        ctx.lineWidth = 4.5;
+        ctx.strokeStyle = '#c084fc';
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(16 * player.facing, -22);
-        ctx.lineTo(58 * player.facing, -10);
+        ctx.moveTo(18 * player.facing, -20);
+        ctx.lineTo(62 * player.facing, -12);
         ctx.stroke();
     } else {
         ctx.moveTo(0, -26);
-        ctx.lineTo(12 * player.facing, -24);
+        ctx.lineTo(12 * player.facing, -22);
         ctx.stroke();
 
-        ctx.strokeStyle = '#ff4500';
-        ctx.lineWidth = 4.5;
+        ctx.strokeStyle = '#c084fc';
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(12 * player.facing, -24);
-        ctx.lineTo(54 * player.facing, -45);
+        ctx.moveTo(12 * player.facing, -22);
+        ctx.lineTo(56 * player.facing, -48);
         ctx.stroke();
     }
 
     ctx.restore();
 
-    // 6. Ngôi sao va chạm (Hit Impact)
+    // Hit Impact Stars
     impactStars.forEach(s => {
         ctx.save();
         ctx.translate(s.x, s.y);
-        ctx.fillStyle = '#fff200';
-        ctx.strokeStyle = '#d63031';
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = s.color;
         ctx.lineWidth = 2;
 
         ctx.beginPath();
         for (let i = 0; i < 8; i++) {
             const angle = (i * Math.PI) / 4;
-            const radius = i % 2 === 0 ? 18 : 7;
+            const radius = i % 2 === 0 ? 20 : 8;
             ctx.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
         }
         ctx.closePath();
@@ -918,26 +999,19 @@ function draw() {
         ctx.restore();
     });
 
-    // 7. Tia/Mảnh Lửa Bay Lơ Lửng (Flame Embers & Spatters)
-    flameParticles.forEach(p => {
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rotation);
-
-        // Mảnh lửa hình lưỡi liềm/giọt bắn đặc trưng Hinokami
-        ctx.fillStyle = p.life % 2 === 0 ? '#d63031' : '#ff7675';
+    // Particles
+    energyParticles.forEach(p => {
+        ctx.fillStyle = p.color;
         ctx.beginPath();
-        ctx.arc(0, 0, p.size, 0, Math.PI * 1.5);
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
-
-        ctx.restore();
     });
 
     // OVERLAYS THẮNG / THUA
     if (gameOver) {
-        ctx.fillStyle = 'rgba(3, 5, 8, 0.88)';
+        ctx.fillStyle = 'rgba(2, 2, 4, 0.88)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#ff4757';
+        ctx.fillStyle = '#ff0055';
         ctx.font = '800 46px Segoe UI';
         ctx.textAlign = 'center';
         ctx.fillText('BẠN ĐÃ TỬ TRẬN!', canvas.width / 2, canvas.height / 2 - 20);
@@ -945,19 +1019,21 @@ function draw() {
         ctx.font = '18px Segoe UI';
         ctx.fillText('Nhấp Chuột Trái để chơi lại', canvas.width / 2, canvas.height / 2 + 30);
     } else if (levelCleared) {
-        ctx.fillStyle = 'rgba(3, 5, 8, 0.88)';
+        ctx.fillStyle = 'rgba(2, 2, 4, 0.88)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#ff4500';
+        ctx.fillStyle = '#c084fc';
         ctx.font = '800 44px Segoe UI';
         ctx.textAlign = 'center';
         ctx.fillText(`HOÀN THÀNH WAVE ${currentLevel}!`, canvas.width / 2, canvas.height / 2 - 30);
-        ctx.fillStyle = '#ffda79';
+        ctx.fillStyle = '#e9d5ff';
         ctx.font = '20px Segoe UI';
-        ctx.fillText(`🔥 Sát thương hiện tại: ${player.currentDamage} (+${Math.floor(totalZombiesKilled / 2)} từ diệt Zombie)`, canvas.width / 2, canvas.height / 2 + 10);
+        ctx.fillText(`⚡ Sát thương hiện tại: ${player.currentDamage} (+${Math.floor(totalZombiesKilled / 2)} từ diệt Zombie)`, canvas.width / 2, canvas.height / 2 + 10);
         ctx.fillStyle = '#fff';
         ctx.font = '16px Segoe UI';
         ctx.fillText('Nhấp Chuột Trái để sang Wave tiếp theo (Xem quảng cáo Poki)', canvas.width / 2, canvas.height / 2 + 55);
     }
+
+    ctx.restore();
 }
 
 // === MAIN LOOP ===
