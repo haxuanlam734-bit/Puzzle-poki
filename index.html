@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stickman Spider Parkour - Poki Official Edition</title>
+    <title>Stickman Spider Parkour - Fast Swinging Poki Edition</title>
     <!-- Poki SDK Official Script -->
     <script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
     <style>
@@ -15,7 +15,7 @@
             -webkit-user-select: none;
         }
         body {
-            background-color: #0d1117;
+            background-color: #0b0f19;
             color: #fff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
@@ -26,13 +26,13 @@
         }
         #gameContainer {
             position: relative;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.85);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.9);
             border-radius: 12px;
             overflow: hidden;
-            border: 2px solid #30363d;
+            border: 2px solid #2a324b;
         }
         canvas {
-            background: linear-gradient(to bottom, #09131d, #162436, #1f334a);
+            background: linear-gradient(to bottom, #090d16, #111b2d, #1a2942);
             display: block;
         }
         #ui {
@@ -50,10 +50,10 @@
             z-index: 10;
         }
         .badge {
-            background: rgba(235, 59, 90, 0.2);
+            background: rgba(235, 59, 90, 0.25);
             border: 1.5px solid #eb3b5a;
             color: #ff793f;
-            padding: 6px 14px;
+            padding: 6px 16px;
             border-radius: 20px;
             font-size: 16px;
         }
@@ -62,14 +62,14 @@
             bottom: 15px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 10px 22px;
+            background: rgba(11, 15, 25, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 10px 24px;
             border-radius: 30px;
             font-size: 14px;
             pointer-events: none;
             text-align: center;
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(5px);
             z-index: 10;
         }
         #adOverlay {
@@ -78,7 +78,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.92);
+            background: rgba(0, 0, 0, 0.94);
             display: none;
             flex-direction: column;
             justify-content: center;
@@ -91,7 +91,7 @@
             border: 5px solid rgba(255, 255, 255, 0.2);
             border-top: 5px solid #ff3838;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 0.8s linear infinite;
             margin-bottom: 20px;
         }
         @keyframes spin {
@@ -105,17 +105,15 @@
 <div id="gameContainer">
     <canvas id="gameCanvas" width="960" height="540"></canvas>
 
-    <!-- HUD Overlay -->
     <div id="ui">
         <div>Màn: <span id="level" style="color:#2ed573;">1</span> / 10</div>
         <div class="badge">Khoảng cách tới đích: <span id="dist">500</span>m</div>
     </div>
 
     <div id="instructions">
-        🖱️ <b>Giữ Chuột Trái</b>: Phóng tơ đu dây / Bám tường | ⌨️ <b>Space</b>: Nhảy bật đà
+        🖱️ <b>Giữ Chuột Trái</b>: Bắn tơ đu dây siêu tốc | ⌨️ <b>Space</b>: Bật đà văng người / Parkour bật tường
     </div>
 
-    <!-- Commercial Break Screen -->
     <div id="adOverlay">
         <div class="spinner"></div>
         <h2 style="color: #fff; font-size: 24px; margin-bottom: 10px;">ĐANG TẢI QUẢNG CÁO POKI...</h2>
@@ -129,10 +127,8 @@ let pokiSdkReady = false;
 
 PokiSDK.init().then(() => {
     pokiSdkReady = true;
-    console.log("Poki SDK initialized successfully");
     PokiSDK.gameLoadingFinished();
 }).catch(() => {
-    console.log("Poki SDK failed or adblock enabled. Game will run in fallback mode.");
     PokiSDK.gameLoadingFinished();
 });
 
@@ -143,19 +139,19 @@ const levelEl = document.getElementById('level');
 const distEl = document.getElementById('dist');
 const adOverlay = document.getElementById('adOverlay');
 
-const GRAVITY = 0.42;
-const FRICTION = 0.985;
-const WALL_SLIDE_FRICTION = 0.82;
+const GRAVITY = 0.38;
+const FRICTION = 0.99; // Giảm ma sát để đu dây nhanh hơn
+const WALL_SLIDE_FRICTION = 0.85;
 
 let currentLevel = 1;
 const MAX_LEVELS = 10;
-let levelGoalX = 2500; // Target distance for Level 1
+let levelGoalX = 3000;
 let cameraX = 0;
 let gameOver = false;
 let levelCleared = false;
 let isPausedForAd = false;
 
-// === STICKMAN PLAYER OBJECT ===
+// === STICKMAN SPIDERMAN OBJECT ===
 const player = {
     x: 100,
     y: 200,
@@ -164,9 +160,8 @@ const player = {
     radius: 12,
     isGrounded: false,
     isTouchingWall: false,
-    wallSide: 0, // -1: wall on left, 1: wall on right
+    wallSide: 0,
     
-    // Rope Physics
     web: {
         active: false,
         targetX: 0,
@@ -177,7 +172,7 @@ const player = {
     reset(startX = 100, startY = 200) {
         this.x = startX;
         this.y = startY;
-        this.vx = 4;
+        this.vx = 6; // Tốc độ xuất phát nhanh hơn
         this.vy = 0;
         this.web.active = false;
         this.isGrounded = false;
@@ -186,58 +181,66 @@ const player = {
 };
 
 // === LEVEL OBJECTS ===
-let walls = [];
-let bullets = [];
-let cannons = [];
+let walls = [];       // Các tòa nhà / tường
+let grappleNodes = [];// CỘT / ĐIỂM BÁM LƠ LỬNG TRÊN KHÔNG
+let skeletons = [];   // KẺ ĐỊCH SKELETON ĐỨNG IM BẮN
+let bullets = [];     // ĐẠN
 
 function setupLevel(lvl) {
-    levelGoalX = 1800 + lvl * 700; // Length increases each level
+    levelGoalX = 2200 + lvl * 800;
     walls = [];
+    grappleNodes = [];
+    skeletons = [];
     bullets = [];
-    cannons = [];
     cameraX = 0;
     gameOver = false;
     levelCleared = false;
 
-    // Platform starting point
-    walls.push({ x: 0, y: 380, width: 320, height: 160, isFinish: false });
+    // Sàn xuất phát
+    walls.push({ x: 0, y: 380, width: 300, height: 160, isFinish: false });
 
-    // Generate procedural obstacles & buildings
-    let currX = 380;
-    while (currX < levelGoalX) {
-        const gap = 110 + Math.random() * 110;
-        const width = 70 + Math.random() * 80;
-        const height = 180 + Math.random() * 220;
+    let currX = 350;
+    while (currX < levelGoalX - 300) {
+        const gap = 140 + Math.random() * 120;
+        const width = 80 + Math.random() * 80;
+        const height = 150 + Math.random() * 200;
         const y = canvas.height - height;
 
+        // Tạo tòa nhà
         walls.push({ x: currX, y, width, height, isFinish: false });
 
-        // Add cannon to some buildings
-        if (Math.random() < 0.45 + (lvl * 0.04)) {
-            cannons.push({
+        // TẠO CỘT / ĐIỂM BÁM LƠ LỬNG TRÊN KHÔNG (Để đu dây siêu nhanh)
+        grappleNodes.push({
+            x: currX - gap / 2,
+            y: 80 + Math.random() * 120,
+            radius: 8
+        });
+
+        // TẠO SKELETON ĐỨNG IM BẮN TRÊN NÓC NHÀ
+        if (Math.random() < 0.5 + (lvl * 0.03)) {
+            skeletons.push({
                 x: currX + width / 2,
-                y: y - 10,
+                y: y - 25, // Đứng trên nóc
                 lastShot: 0,
-                cooldown: Math.max(1000, 2400 - lvl * 150)
+                cooldown: Math.max(1200, 2600 - lvl * 150)
             });
         }
 
         currX += width + gap;
     }
 
-    // Finish Line Building
-    walls.push({ x: levelGoalX, y: 260, width: 400, height: 280, isFinish: true });
+    // Tòa nhà Đích
+    walls.push({ x: levelGoalX, y: 240, width: 400, height: 300, isFinish: true });
 
     player.reset(100, 200);
 
-    // Notify Poki
     if (typeof PokiSDK !== 'undefined' && PokiSDK.gameplayStart) {
         PokiSDK.gameplayStart();
     }
 }
 
 // === INPUT HANDLING ===
-const mouse = { x: 0, y: 0, isDown: false };
+const mouse = { x: 0, y: 0 };
 
 window.addEventListener('mousemove', (e) => {
     const rect = canvas.getBoundingClientRect();
@@ -247,7 +250,6 @@ window.addEventListener('mousemove', (e) => {
 
 canvas.addEventListener('mousedown', (e) => {
     if (e.button === 0) {
-        mouse.isDown = true;
         if (gameOver) {
             setupLevel(currentLevel);
             return;
@@ -262,7 +264,6 @@ canvas.addEventListener('mousedown', (e) => {
 
 window.addEventListener('mouseup', (e) => {
     if (e.button === 0) {
-        mouse.isDown = false;
         player.web.active = false;
     }
 });
@@ -272,25 +273,32 @@ function attachWeb() {
     const targetWorldX = mouse.x + cameraX;
     const targetWorldY = mouse.y;
 
-    // Check hit on walls
-    let hit = false;
-    for (let wall of walls) {
-        if (targetWorldX >= wall.x && targetWorldX <= wall.x + wall.width &&
-            targetWorldY >= wall.y && targetWorldY <= wall.y + wall.height) {
-            hit = true;
-            break;
+    // Ưu tiên bám vào các điểm/cột lơ lửng nếu nhấp gần chúng
+    let bestTarget = null;
+    let minDist = 120; // Bán kính ưu tiên bắt điểm
+
+    for (let node of grappleNodes) {
+        let d = Math.hypot(targetWorldX - node.x, targetWorldY - node.y);
+        if (d < minDist) {
+            minDist = d;
+            bestTarget = { x: node.x, y: node.y };
         }
     }
 
-    // Allow hooking to walls or high ceiling
-    if (hit || targetWorldY < 180) {
+    if (bestTarget) {
+        player.web.active = true;
+        player.web.targetX = bestTarget.x;
+        player.web.targetY = bestTarget.y;
+    } else {
+        // Bắn vào tường hoặc trần
         player.web.active = true;
         player.web.targetX = targetWorldX;
         player.web.targetY = targetWorldY;
-        const dx = player.x - player.web.targetX;
-        const dy = player.y - player.web.targetY;
-        player.web.length = Math.max(40, Math.sqrt(dx * dx + dy * dy));
     }
+
+    const dx = player.x - player.web.targetX;
+    const dy = player.y - player.web.targetY;
+    player.web.length = Math.max(30, Math.sqrt(dx * dx + dy * dy));
 }
 
 window.addEventListener('keydown', (e) => {
@@ -298,26 +306,24 @@ window.addEventListener('keydown', (e) => {
         if (isPausedForAd) return;
 
         if (player.web.active) {
-            // Cut web with jump boost
+            // Cắt tơ & BẬT ĐÀ VĂNG NGƯỜI SIÊU TỐC
             player.web.active = false;
-            player.vy -= 7;
-            player.vx += 4.5;
+            player.vy -= 8;
+            player.vx += 8; // Lực văng mạnh về phía trước
         } else if (player.isTouchingWall) {
-            // Parkour Wall Jump
-            player.vy = -10.5;
-            player.vx += (player.wallSide === -1) ? -7 : 7;
-        } else if (player.isGrounded) {
-            // Normal Ground Jump
+            // Parkour bật tường
             player.vy = -11;
+            player.vx += (player.wallSide === -1) ? -8 : 8;
+        } else if (player.isGrounded) {
+            player.vy = -12;
         }
     }
 });
 
-// === COMMERCIAL BREAK (ADS) SYSTEM ===
+// === QUẢNG CÁO POKI ===
 function nextLevelWithAd() {
     if (isPausedForAd) return;
     
-    // Stop gameplay for Poki SDK
     if (typeof PokiSDK !== 'undefined' && PokiSDK.gameplayStop) {
         PokiSDK.gameplayStop();
     }
@@ -328,40 +334,31 @@ function nextLevelWithAd() {
     const proceedToNextLevel = () => {
         adOverlay.style.display = 'none';
         isPausedForAd = false;
-        if (currentLevel < MAX_LEVELS) {
-            currentLevel++;
-        } else {
-            currentLevel = 1; // Loop back or reset
-        }
+        currentLevel = (currentLevel < MAX_LEVELS) ? currentLevel + 1 : 1;
         setupLevel(currentLevel);
     };
 
     if (pokiSdkReady) {
-        PokiSDK.commercialBreak(() => {
-            // Audio mute / pause if needed
-        }).then(() => {
+        PokiSDK.commercialBreak().then(() => {
             proceedToNextLevel();
         }).catch(() => {
             proceedToNextLevel();
         });
     } else {
-        // Fallback simulation (1.5s delay)
-        setTimeout(proceedToNextLevel, 1500);
+        setTimeout(proceedToNextLevel, 1200);
     }
 }
 
 // === GAME ENGINE & PHYSICS ===
-let lastTime = performance.now();
-
 function update(now) {
     if (gameOver || levelCleared || isPausedForAd) return;
 
-    // 1. Gravity & Drag
+    // Trọng lực & Ma sát
     player.vy += GRAVITY;
     player.vx *= FRICTION;
     player.vy *= FRICTION;
 
-    // 2. Rope swinging physics
+    // ĐU DÂY SIÊU TỐC (SWINGING PHYSICS)
     if (player.web.active) {
         const dx = player.x - player.web.targetX;
         const dy = player.y - player.web.targetY;
@@ -372,30 +369,27 @@ function update(now) {
             player.x = player.web.targetX + Math.cos(angle) * player.web.length;
             player.y = player.web.targetY + Math.sin(angle) * player.web.length;
 
-            // Swing velocity impulse
-            const swingForce = 0.75;
+            // Tăng lực kéo đu dây (Swing force) cực bốc
+            const swingForce = 1.35;
             player.vx -= Math.cos(angle) * swingForce;
             player.vy -= Math.sin(angle) * swingForce;
         }
     }
 
-    // Apply Velocity
     player.x += player.vx;
     player.y += player.vy;
 
-    // 3. Wall Collisions & Parkour
     player.isGrounded = false;
     player.isTouchingWall = false;
 
+    // Va chạm tường & Tiếp đất
     for (let wall of walls) {
-        // Ground Collision
         if (player.x + player.radius > wall.x && player.x - player.radius < wall.x + wall.width) {
             if (player.y + player.radius >= wall.y && player.y - player.radius < wall.y + 25) {
                 player.y = wall.y - player.radius;
                 player.vy = 0;
                 player.isGrounded = true;
 
-                // Win Condition on Finish Building
                 if (wall.isFinish) {
                     levelCleared = true;
                     if (typeof PokiSDK !== 'undefined' && PokiSDK.gameplayStop) {
@@ -405,37 +399,32 @@ function update(now) {
             }
         }
 
-        // Wall Slide Collision
         if (player.y + player.radius > wall.y && player.y - player.radius < wall.y + wall.height) {
-            // Left edge
-            if (Math.abs((player.x + player.radius) - wall.x) < 6) {
+            if (Math.abs((player.x + player.radius) - wall.x) < 7) {
                 player.x = wall.x - player.radius;
                 player.vx = 0;
                 player.vy *= WALL_SLIDE_FRICTION;
                 player.isTouchingWall = true;
-                player.wallSide = 1; // Bouncing left
-            }
-            // Right edge
-            else if (Math.abs((player.x - player.radius) - (wall.x + wall.width)) < 6) {
+                player.wallSide = 1;
+            } else if (Math.abs((player.x - player.radius) - (wall.x + wall.width)) < 7) {
                 player.x = wall.x + wall.width + player.radius;
                 player.vx = 0;
                 player.vy *= WALL_SLIDE_FRICTION;
                 player.isTouchingWall = true;
-                player.wallSide = -1; // Bouncing right
+                player.wallSide = -1;
             }
         }
     }
 
-    // 4. Cannons Firing Bullets
-    for (let c of cannons) {
-        if (now - c.lastShot > c.cooldown && Math.abs(player.x - c.x) < 800) {
-            c.lastShot = now;
-            // Aim towards player
-            const angle = Math.atan2(player.y - c.y, player.x - c.x);
-            const speed = 5.5 + currentLevel * 0.3;
+    // SKELETON ĐỨNG IM BẮN ĐẠN
+    for (let sk of skeletons) {
+        if (now - sk.lastShot > sk.cooldown && Math.abs(player.x - sk.x) < 700) {
+            sk.lastShot = now;
+            const angle = Math.atan2(player.y - sk.y, player.x - sk.x);
+            const speed = 4.8 + currentLevel * 0.2; // Tốc độ đạn vừa phải để dễ né
             bullets.push({
-                x: c.x,
-                y: c.y,
+                x: sk.x,
+                y: sk.y,
                 vx: Math.cos(angle) * speed,
                 vy: Math.sin(angle) * speed,
                 radius: 5
@@ -443,13 +432,12 @@ function update(now) {
         }
     }
 
-    // 5. Bullets Update & Hitbox
+    // Xử lý đạn
     for (let i = bullets.length - 1; i >= 0; i--) {
         let b = bullets[i];
         b.x += b.vx;
         b.y += b.vy;
 
-        // Player bullet hit check
         const dist = Math.hypot(player.x - b.x, player.y - b.y);
         if (dist < player.radius + b.radius) {
             gameOver = true;
@@ -458,27 +446,22 @@ function update(now) {
             }
         }
 
-        // Remove offscreen bullets
         if (b.x < cameraX - 100 || b.x > cameraX + canvas.width + 100) {
             bullets.splice(i, 1);
         }
     }
 
-    // 6. Camera Follow
-    cameraX = player.x - 180;
+    cameraX = player.x - 200;
 
-    // 7. Death in abyss
-    if (player.y > canvas.height + 120) {
+    if (player.y > canvas.height + 150) {
         gameOver = true;
         if (typeof PokiSDK !== 'undefined' && PokiSDK.gameplayStop) {
             PokiSDK.gameplayStop();
         }
     }
 
-    // UI Updates
     levelEl.innerText = currentLevel;
-    const remainingDist = Math.max(0, Math.floor((levelGoalX - player.x) / 10));
-    distEl.innerText = remainingDist;
+    distEl.innerText = Math.max(0, Math.floor((levelGoalX - player.x) / 10));
 }
 
 // === RENDERING ENGINE ===
@@ -488,14 +471,12 @@ function draw() {
     ctx.save();
     ctx.translate(-cameraX, 0);
 
-    // 1. Draw Buildings / Walls
+    // 1. Vẽ Tòa nhà
     for (let wall of walls) {
         if (wall.isFinish) {
-            // Gold finish building
             ctx.fillStyle = '#f7b731';
             ctx.strokeStyle = '#fa8231';
         } else {
-            // Cyberpunk Dark Metal
             ctx.fillStyle = '#1e272e';
             ctx.strokeStyle = '#00d2d3';
         }
@@ -503,7 +484,6 @@ function draw() {
         ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
         ctx.strokeRect(wall.x, wall.y, wall.width, wall.height);
 
-        // Draw Finish Flag if finish building
         if (wall.isFinish) {
             ctx.fillStyle = '#2ed573';
             ctx.fillRect(wall.x + 30, wall.y - 60, 6, 60);
@@ -515,15 +495,57 @@ function draw() {
         }
     }
 
-    // 2. Draw Cannons
-    ctx.fillStyle = '#eb3b5a';
-    for (let c of cannons) {
+    // 2. VẼ CỘT / ĐIỂM BÁM LƠ LỬNG TRÊN KHÔNG
+    for (let node of grappleNodes) {
+        ctx.fillStyle = '#00d2d3';
         ctx.beginPath();
-        ctx.arc(c.x, c.y, 10, 0, Math.PI * 2);
+        ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
         ctx.fill();
+
+        // Mòng tròn phát sáng bao quanh
+        ctx.strokeStyle = 'rgba(0, 210, 211, 0.4)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, node.radius + 6, 0, Math.PI * 2);
+        ctx.stroke();
     }
 
-    // 3. Draw Web
+    // 3. VẼ KẺ ĐỊCH SKELETON (ĐỨNG IM BẮN)
+    for (let sk of skeletons) {
+        // Thân Skeleton (Màu xám trắng)
+        ctx.strokeStyle = '#dcdde1';
+        ctx.fillStyle = '#dcdde1';
+        ctx.lineWidth = 3;
+
+        // Đầu
+        ctx.beginPath();
+        ctx.arc(sk.x, sk.y - 12, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Mắt đỏ quỷ
+        ctx.fillStyle = '#ff3838';
+        ctx.beginPath();
+        ctx.arc(sk.x + (player.x > sk.x ? 2 : -2), sk.y - 13, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Thân & Chân đứng im
+        ctx.strokeStyle = '#dcdde1';
+        ctx.beginPath();
+        ctx.moveTo(sk.x, sk.y - 5);
+        ctx.lineTo(sk.x, sk.y + 10);
+        ctx.moveTo(sk.x, sk.y + 10);
+        ctx.lineTo(sk.x - 6, sk.y + 22);
+        ctx.moveTo(sk.x, sk.y + 10);
+        ctx.lineTo(sk.x + 6, sk.y + 22);
+        
+        // Tay giơ cung/súng nhắm về hướng Spiderman
+        const aimAngle = Math.atan2(player.y - sk.y, player.x - sk.x);
+        ctx.moveTo(sk.x, sk.y - 2);
+        ctx.lineTo(sk.x + Math.cos(aimAngle) * 14, sk.y + Math.sin(aimAngle) * 14);
+        ctx.stroke();
+    }
+
+    // 4. Vẽ Tơ nhện
     if (player.web.active) {
         ctx.beginPath();
         ctx.moveTo(player.x, player.y);
@@ -532,58 +554,51 @@ function draw() {
         ctx.lineWidth = 2.5;
         ctx.stroke();
 
-        // Web hook point glow
-        ctx.fillStyle = '#00d2d3';
+        ctx.fillStyle = '#fffa65';
         ctx.beginPath();
         ctx.arc(player.web.targetX, player.web.targetY, 5, 0, Math.PI * 2);
         ctx.fill();
     }
 
-    // 4. Draw Stickman Spider-Man
-    ctx.strokeStyle = '#ff3838'; // Spidey Red
+    // 5. Vẽ Stickman Spider-Man
+    ctx.strokeStyle = '#ff3838';
     ctx.fillStyle = '#ff3838';
     ctx.lineWidth = 3.5;
 
-    // Head
     ctx.beginPath();
     ctx.arc(player.x, player.y - 12, 8, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
-    // Spidey Eyes
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
     ctx.arc(player.x + 3, player.y - 14, 2.5, 0, Math.PI * 2);
     ctx.fill();
 
-    // Body
     ctx.strokeStyle = '#ff3838';
     ctx.beginPath();
     ctx.moveTo(player.x, player.y - 4);
     ctx.lineTo(player.x, player.y + 12);
     ctx.stroke();
 
-    // Limbs Animation (Swinging vs Wall Sliding vs Normal)
+    // Tư thế chân tay chuyển động cực ngầu
     ctx.beginPath();
     if (player.web.active) {
-        // Swing Pose
         ctx.moveTo(player.x, player.y - 2);
-        ctx.lineTo(player.x - 10, player.y - 12);
+        ctx.lineTo(player.x - 12, player.y - 14);
         ctx.moveTo(player.x, player.y - 2);
-        ctx.lineTo(player.x + 10, player.y + 6);
+        ctx.lineTo(player.x + 12, player.y + 8);
 
         ctx.moveTo(player.x, player.y + 12);
-        ctx.lineTo(player.x - 10, player.y + 22);
+        ctx.lineTo(player.x - 12, player.y + 22);
         ctx.moveTo(player.x, player.y + 12);
-        ctx.lineTo(player.x + 12, player.y + 16);
+        ctx.lineTo(player.x + 14, player.y + 16);
     } else if (player.isTouchingWall) {
-        // Wall Parkour Pose
         ctx.moveTo(player.x, player.y - 2);
         ctx.lineTo(player.x + (player.wallSide * 10), player.y - 8);
         ctx.moveTo(player.x, player.y + 12);
         ctx.lineTo(player.x + (player.wallSide * 12), player.y + 20);
     } else {
-        // Default / Running Pose
         ctx.moveTo(player.x, player.y - 2);
         ctx.lineTo(player.x - 8, player.y + 6);
         ctx.moveTo(player.x, player.y - 2);
@@ -596,9 +611,9 @@ function draw() {
     }
     ctx.stroke();
 
-    // 5. Draw Bullets
+    // 6. Vẽ Đạn (Bullets)
     ctx.fillStyle = '#ff9f1a';
-    ctx.strokeStyle = '#fff';
+    ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 1;
     for (let b of bullets) {
         ctx.beginPath();
@@ -609,44 +624,43 @@ function draw() {
 
     ctx.restore();
 
-    // 6. OVERLAY SCREENS
+    // Màn hình Thông báo
     if (gameOver) {
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+        ctx.fillStyle = 'rgba(11, 15, 25, 0.9)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         ctx.fillStyle = '#eb3b5a';
         ctx.font = '800 42px Segoe UI';
         ctx.textAlign = 'center';
-        ctx.fillText('BẠN ĐÃ THUA!', canvas.width / 2, canvas.height / 2 - 30);
+        ctx.fillText('BẠN ĐÃ BỊ HẠ!', canvas.width / 2, canvas.height / 2 - 30);
 
         ctx.fillStyle = '#ffffff';
         ctx.font = '18px Segoe UI';
-        ctx.fillText('Bị trúng đạn hoặc rơi xuống hố.', canvas.width / 2, canvas.height / 2 + 10);
-        ctx.fillText('Nhấp Chuột Trái để chơi lại màn này', canvas.width / 2, canvas.height / 2 + 50);
+        ctx.fillText('Thử nhắm đu vào các điểm xanh lơ lửng để bay nhanh hơn!', canvas.width / 2, canvas.height / 2 + 10);
+        ctx.fillText('Nhấp Chuột Trái để thử lại', canvas.width / 2, canvas.height / 2 + 50);
     } else if (levelCleared) {
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+        ctx.fillStyle = 'rgba(11, 15, 25, 0.9)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         ctx.fillStyle = '#2ed573';
         ctx.font = '800 42px Segoe UI';
         ctx.textAlign = 'center';
-        ctx.fillText(`HOÀN THÀNH MÀN ${currentLevel}!`, canvas.width / 2, canvas.height / 2 - 30);
+        ctx.fillText(`VƯỢT MÀN ${currentLevel} THÀNH CÔNG!`, canvas.width / 2, canvas.height / 2 - 30);
 
         ctx.fillStyle = '#ffffff';
         ctx.font = '18px Segoe UI';
-        ctx.fillText('Kỹ năng parkour & đu dây tuyệt vời!', canvas.width / 2, canvas.height / 2 + 10);
-        ctx.fillText('Nhấp Chuột Trái để tiếp tục (Xem quảng cáo Poki)', canvas.width / 2, canvas.height / 2 + 50);
+        ctx.fillText('Đu dây siêu đẳng!', canvas.width / 2, canvas.height / 2 + 10);
+        ctx.fillText('Nhấp Chuột Trái để sang màn tiếp theo (Xem quảng cáo Poki)', canvas.width / 2, canvas.height / 2 + 50);
     }
 }
 
-// === MAIN GAME LOOP ===
+// === MAIN LOOP ===
 function loop(now) {
     update(now);
     draw();
     requestAnimationFrame(loop);
 }
 
-// Start Game
 setupLevel(currentLevel);
 requestAnimationFrame(loop);
 </script>
