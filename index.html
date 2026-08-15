@@ -3,496 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stickman Hardcore Parkour: Escape</title>
-    <!-- Poki SDK Official Script -->
-    <script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
+    <title>Stickman Parkour</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            background-color: #030712;
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
-        }
-        #gameContainer {
-            position: relative;
-            box-shadow: 0 0 50px rgba(56, 189, 248, 0.4);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 2px solid #38bdf8;
-            background: #000;
-        }
-        canvas {
-            display: block;
-            background: #0b0f19;
-        }
-        #uiOverlay {
-            position: absolute;
-            top: 15px;
-            left: 20px;
-            right: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            pointer-events: none;
-            z-index: 10;
-        }
-        .badge {
-            background: rgba(15, 23, 42, 0.85);
-            border: 1.5px solid #38bdf8;
-            color: #38bdf8;
-            padding: 8px 18px;
-            border-radius: 20px;
-            font-weight: 800;
-            font-size: 15px;
-            backdrop-filter: blur(4px);
-        }
-        #controlsHUD {
-            position: absolute;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 10px;
-            pointer-events: none;
-            z-index: 10;
-        }
-        .key-card {
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid #38bdf8;
-            color: #fff;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-        }
-        .key {
-            background: #38bdf8;
-            color: #000;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: 900;
-        }
-        #adOverlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(3, 7, 18, 0.95);
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-        }
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(255, 255, 255, 0.1);
-            border-top: 5px solid #38bdf8;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        body { margin: 0; padding: 0; background-color: #222; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        canvas { box-shadow: 0 0 20px rgba(0,0,0,0.8); border-radius: 10px; }
     </style>
+    <!-- Thư viện Phaser 3 -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <!-- Poki SDK (Bản giả lập để test) -->
+    <script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
 </head>
 <body>
 
-<div id="gameContainer">
-    <canvas id="gameCanvas" width="960" height="540"></canvas>
-
-    <div id="uiOverlay">
-        <div class="badge">MAP: <span id="mapText" style="color:#fff;">1 / 3</span></div>
-        <div class="badge" style="border-color:#ef4444; color:#ef4444;">DEATHS: <span id="deathText" style="color:#fff;">0</span></div>
-    </div>
-
-    <div id="controlsHUD">
-        <div class="key-card"><span class="key">A / D</span> Di chuyển</div>
-        <div class="key-card"><span class="key">W / Space</span> Nhảy / Wall Jump</div>
-        <div class="key-card"><span class="key">S</span> Trượt</div>
-        <div class="key-card"><span class="key">Shift</span> Dash (Lướt)</div>
-    </div>
-
-    <!-- POKI AD OVERLAY -->
-    <div id="adOverlay">
-        <div class="spinner"></div>
-        <h2 style="color: #38bdf8; font-size: 22px; margin-bottom: 8px;">ĐANG TẢI QUẢNG CÁO POKI...</h2>
-        <p style="color: #9ca3af; font-size: 14px;">Bạn đã bỏ mạng! Chuẩn bị hồi sinh tại Checkpoint...</p>
-    </div>
-</div>
-
 <script>
-// === POKI SDK ===
-let pokiReady = false;
-PokiSDK.init().then(() => {
-    pokiReady = true;
-    PokiSDK.gameLoadingFinished();
-}).catch(() => PokiSDK.gameLoadingFinished());
+    // --- KHỞI TẠO POKI SDK ---
+    PokiSDK.init().then(() => {
+        console.log("Poki SDK initialized");
+    }).catch(() => {
+        console.log("Adblock enabled or Poki SDK failed");
+    });
 
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-
-const mapText = document.getElementById('mapText');
-const deathText = document.getElementById('deathText');
-const adOverlay = document.getElementById('adOverlay');
-
-const GRAVITY = 0.55;
-let currentMap = 0;
-let deathCount = 0;
-let isDead = false;
-
-// === STICKMAN PARKOUR PLAYER ===
-const player = {
-    x: 50,
-    y: 100,
-    w: 20,
-    h: 50,
-    vx: 0,
-    vy: 0,
-    speed: 5.5,
-    jumpForce: -11.5,
-    isGrounded: false,
-    isWalled: false,
-    wallDir: 0,
-    facing: 1,
-    
-    // Kỹ năng Parkour
-    isDashing: false,
-    canDash: true,
-    dashTimer: 0,
-    isSliding: false,
-
-    reset(spawnX, spawnY) {
-        this.x = spawnX;
-        this.y = spawnY;
-        this.vx = 0;
-        this.vy = 0;
-        this.isGrounded = false;
-        this.isWalled = false;
-        this.isDashing = false;
-        this.canDash = true;
-        this.h = 50;
-    },
-
-    update(platforms, spikes, exitDoor) {
-        if (isDead) return;
-
-        // Trượt đất (Slide)
-        if (keys['s'] && this.isGrounded) {
-            this.isSliding = true;
-            this.h = 25;
-        } else {
-            this.isSliding = false;
-            this.h = 50;
+    // --- CẢNH SẢNH (LOBBY SCENE) ---
+    class LobbyScene extends Phaser.Scene {
+        constructor() {
+            super({ key: 'LobbyScene' });
         }
 
-        // Dash
-        if (keys['shift'] && this.canDash && !this.isDashing) {
-            this.isDashing = true;
-            this.canDash = false;
-            this.dashTimer = 10;
+        create() {
+            // Trang trí sảnh
+            this.cameras.main.setBackgroundColor('#2c3e50');
+            this.add.text(400, 50, 'STICKMAN PARKOUR', { fontSize: '40px', fill: '#ecf0f1', fontStyle: 'bold' }).setOrigin(0.5);
+
+            // Nút chọn chế độ
+            const modes = ['Dễ', 'Khó', 'Siêu Khó'];
+            const colors = ['#2ecc71', '#e67e22', '#e74c3c'];
+            let currentMode = 'Dễ';
+
+            const modeText = this.add.text(400, 120, 'Chế độ hiện tại: Dễ', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5);
+
+            modes.forEach((mode, index) => {
+                let btn = this.add.rectangle(250 + (index * 150), 180, 120, 40, Phaser.Display.Color.HexStringToColor(colors[index]).color)
+                    .setInteractive({ useHandCursor: true })
+                    .on('pointerdown', () => {
+                        currentMode = mode;
+                        modeText.setText('Chế độ hiện tại: ' + mode);
+                    });
+                this.add.text(250 + (index * 150), 180, mode, { fontSize: '20px', fill: '#fff' }).setOrigin(0.5);
+            });
+
+            // Tạo lưới 50 Map
+            this.add.text(400, 250, 'CHỌN MAP', { fontSize: '28px', fill: '#f1c40f' }).setOrigin(0.5);
+            
+            let startX = 130;
+            let startY = 300;
+            for (let i = 1; i <= 50; i++) {
+                let row = Math.floor((i - 1) / 10);
+                let col = (i - 1) % 10;
+                let x = startX + col * 60;
+                let y = startY + row * 60;
+
+                // Nút chọn map
+                let mapBtn = this.add.rectangle(x, y, 40, 40, 0x34495e)
+                    .setInteractive({ useHandCursor: true })
+                    .on('pointerdown', () => {
+                        this.scene.start('GameScene', { level: i, mode: currentMode });
+                    });
+                this.add.text(x, y, i.toString(), { fontSize: '18px', fill: '#fff' }).setOrigin(0.5);
+            }
+        }
+    }
+
+    // --- CẢNH CHƠI GAME (GAME SCENE) ---
+    class GameScene extends Phaser.Scene {
+        constructor() {
+            super({ key: 'GameScene' });
         }
 
-        if (this.isDashing) {
-            this.vx = this.facing * 14;
-            this.vy = 0;
-            this.dashTimer--;
-            if (this.dashTimer <= 0) this.isDashing = false;
-        } else {
-            // Di chuyển ngang
-            if (keys['a'] || keys['arrowleft']) {
-                this.vx = -this.speed;
-                this.facing = -1;
-            } else if (keys['d'] || keys['arrowright']) {
-                this.vx = this.speed;
-                this.facing = 1;
+        init(data) {
+            this.level = data.level;
+            this.mode = data.mode;
+        }
+
+        create() {
+            this.cameras.main.setBackgroundColor('#87CEEB');
+            this.add.text(20, 20, `Map: ${this.level} | Chế độ: ${this.mode}`, { fontSize: '20px', fill: '#000' });
+
+            // Báo cho Poki biết game bắt đầu
+            PokiSDK.gameplayStart();
+
+            // Tạo mặt đất
+            this.platforms = this.physics.add.staticGroup();
+            let ground = this.platforms.create(400, 580, null).setSize(800, 40).setVisible(false);
+            this.add.rectangle(400, 580, 800, 40, 0x27ae60);
+
+            // Tạo bệ nhảy (Parkour)
+            this.platforms.create(600, 450, null).setSize(100, 20).setVisible(false);
+            this.add.rectangle(600, 450, 100, 20, 0x27ae60);
+
+            // Tạo Stickman (khối vuông làm đại diện tạm thời)
+            this.player = this.physics.add.sprite(100, 450, null).setSize(30, 50);
+            this.add.rectangle(100, 450, 30, 50, 0x000000); // Vẽ stickman màu đen
+            
+            this.player.setBounce(0.1);
+            this.player.setCollideWorldBounds(true);
+            this.physics.add.collider(this.player, this.platforms);
+
+            // Cửa qua màn
+            this.goal = this.physics.add.sprite(750, 530, null).setSize(40, 60);
+            this.add.rectangle(750, 530, 40, 60, 0xf1c40f);
+            this.physics.add.collider(this.goal, this.platforms);
+            
+            // Xử lý khi chạm đích
+            this.physics.add.overlap(this.player, this.goal, this.reachGoal, null, this);
+
+            this.cursors = this.input.keyboard.createCursorKeys();
+        }
+
+        update() {
+            // Di chuyển cơ bản
+            if (this.cursors.left.isDown) {
+                this.player.setVelocityX(-200);
+            } else if (this.cursors.right.isDown) {
+                this.player.setVelocityX(200);
             } else {
-                this.vx *= 0.8;
+                this.player.setVelocityX(0);
             }
 
-            // Trọng lực (Tụt tường chậm hơn)
-            if (this.isWalled && this.vy > 0) {
-                this.vy += GRAVITY * 0.3;
-            } else {
-                this.vy += GRAVITY;
+            // Nhảy
+            if (this.cursors.up.isDown && this.player.body.touching.down) {
+                this.player.setVelocityY(-400);
             }
         }
 
-        // Cập nhật vị trí X & Va chạm
-        this.x += this.vx;
-        this.checkCollisionX(platforms);
+        reachGoal() {
+            this.physics.pause();
+            PokiSDK.gameplayStop(); // Báo Poki game tạm dừng
 
-        // Cập nhật vị trí Y & Va chạm
-        this.y += this.vy;
-        this.isGrounded = false;
-        this.isWalled = false;
-        this.checkCollisionY(platforms);
-
-        if (this.isGrounded) this.canDash = true;
-
-        // Va chạm bẫy gai -> THUA
-        spikes.forEach(sp => {
-            if (this.x < sp.x + sp.w && this.x + this.w > sp.x &&
-                this.y < sp.y + sp.h && this.y + this.h > sp.y) {
-                die();
-            }
-        });
-
-        // Tụt xuống vực -> THUA
-        if (this.y > canvas.height + 100) die();
-
-        // Chạm Cổng Thoát -> LÊN MAP NEXT
-        if (this.x < exitDoor.x + exitDoor.w && this.x + this.w > exitDoor.x &&
-            this.y < exitDoor.y + exitDoor.h && this.y + this.h > exitDoor.y) {
-            nextMap();
-        }
-    },
-
-    checkCollisionX(platforms) {
-        platforms.forEach(p => {
-            if (this.y + this.h > p.y && this.y < p.y + p.h) {
-                if (this.x + this.w > p.x && this.x < p.x) { // Đâm vào lề trái
-                    this.x = p.x - this.w;
-                    if (!this.isGrounded) { this.isWalled = true; this.wallDir = -1; }
-                } else if (this.x < p.x + p.w && this.x + this.w > p.x + p.w) { // Đâm vào lề phải
-                    this.x = p.x + p.w;
-                    if (!this.isGrounded) { this.isWalled = true; this.wallDir = 1; }
-                }
-            }
-        });
-    },
-
-    checkCollisionY(platforms) {
-        platforms.forEach(p => {
-            if (this.x + this.w > p.x && this.x < p.x + p.w) {
-                if (this.y + this.h > p.y && this.y < p.y) { // Đứng trên sàn
-                    this.y = p.y - this.h;
-                    this.vy = 0;
-                    this.isGrounded = true;
-                } else if (this.y < p.y + p.h && this.y + this.h > p.y + p.h) { // Cụng đầu
-                    this.y = p.y + p.h;
-                    this.vy = 0;
-                }
-            }
-        });
-    },
-
-    draw() {
-        ctx.save();
-        ctx.translate(this.x + this.w / 2, this.y + this.h);
-
-        ctx.strokeStyle = this.isDashing ? '#38bdf8' : '#ffffff';
-        ctx.fillStyle = '#ffffff';
-        ctx.lineWidth = 4;
-        ctx.lineCap = 'round';
-
-        const h = this.h;
-
-        // Head
-        ctx.beginPath();
-        ctx.arc(0, -h + 8, 7, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Body
-        ctx.beginPath();
-        ctx.moveTo(0, -h + 15);
-        ctx.lineTo(0, -h / 2);
-        ctx.stroke();
-
-        // Arms & Legs Animation
-        ctx.beginPath();
-        ctx.moveTo(0, -h + 20);
-        ctx.lineTo(-10 * this.facing, -h + 10);
-        ctx.moveTo(0, -h + 20);
-        ctx.lineTo(10 * this.facing, -h + 10);
-
-        ctx.moveTo(0, -h / 2);
-        ctx.lineTo(-8, 0);
-        ctx.moveTo(0, -h / 2);
-        ctx.lineTo(8, 0);
-        ctx.stroke();
-
-        ctx.restore();
-    }
-};
-
-// === MAP DESIGN (RỐI RẮN & KHÓ DẦN) ===
-const maps = [
-    // MAP 1: CƠ BẢN & WALL JUMP
-    {
-        spawn: { x: 40, y: 380 },
-        exit: { x: 880, y: 80, w: 40, h: 60 },
-        platforms: [
-            { x: 0, y: 440, w: 200, h: 100 },
-            { x: 260, y: 360, w: 100, h: 180 },
-            { x: 440, y: 280, w: 30, h: 260 }, // Tường Wall Jump
-            { x: 550, y: 220, w: 30, h: 320 }, // Tường Wall Jump 2
-            { x: 680, y: 160, w: 280, h: 400 }
-        ],
-        spikes: [
-            { x: 200, y: 520, w: 480, h: 20 },
-            { x: 280, y: 340, w: 40, h: 20 }
-        ]
-    },
-    // MAP 2: BẪY GAI DENSE & KHE HẸP
-    {
-        spawn: { x: 50, y: 400 },
-        exit: { x: 880, y: 400, w: 40, h: 60 },
-        platforms: [
-            { x: 0, y: 460, w: 140, h: 80 },
-            { x: 190, y: 380, w: 70, h: 160 },
-            { x: 310, y: 300, w: 70, h: 240 },
-            { x: 430, y: 220, w: 120, h: 20 }, // Khe hẹp trượt
-            { x: 600, y: 300, w: 60, h: 240 },
-            { x: 720, y: 380, w: 60, h: 160 },
-            { x: 840, y: 460, w: 120, h: 80 }
-        ],
-        spikes: [
-            { x: 140, y: 520, w: 700, h: 20 },
-            { x: 320, y: 280, w: 40, h: 20 },
-            { x: 610, y: 280, w: 40, h: 20 }
-        ]
-    },
-    // MAP 3: RỐI MẮT MEGA PARKOUR (SIÊU KHÓ)
-    {
-        spawn: { x: 30, y: 80 },
-        exit: { x: 460, y: 260, w: 40, h: 60 },
-        platforms: [
-            { x: 0, y: 140, w: 100, h: 20 },
-            { x: 150, y: 180, w: 40, h: 20 },
-            { x: 240, y: 240, w: 40, h: 300 },
-            { x: 340, y: 140, w: 40, h: 400 },
-            { x: 450, y: 320, w: 100, h: 20 },
-            { x: 600, y: 240, w: 40, h: 300 },
-            { x: 700, y: 160, w: 40, h: 380 },
-            { x: 800, y: 100, w: 160, h: 20 },
-            { x: 860, y: 440, w: 100, h: 100 }
-        ],
-        spikes: [
-            { x: 100, y: 520, w: 760, h: 20 },
-            { x: 240, y: 220, w: 40, h: 20 },
-            { x: 340, y: 120, w: 40, h: 20 },
-            { x: 700, y: 140, w: 40, h: 20 },
-            { x: 820, y: 80, w: 120, h: 20 }
-        ]
-    }
-];
-
-// === CONTROLS ===
-const keys = {};
-window.addEventListener('keydown', e => {
-    const k = e.key.toLowerCase();
-    keys[k] = true;
-
-    // Jump / Wall Jump
-    if ((k === 'w' || e.code === 'Space') && !isDead) {
-        if (player.isGrounded) {
-            player.vy = player.jumpForce;
-        } else if (player.isWalled) {
-            player.vy = player.jumpForce * 0.95;
-            player.vx = player.wallDir * 8; // Đẩy bật khỏi tường
-            player.facing = player.wallDir;
+            // Hiện quảng cáo Poki khi qua màn
+            PokiSDK.commercialBreak().then(() => {
+                console.log("Quảng cáo kết thúc, quay về sảnh");
+                this.scene.start('LobbyScene');
+            });
         }
     }
-});
-window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
-// === GAME CONTROLLER ===
-function die() {
-    if (isDead) return;
-    isDead = true;
-    deathCount++;
-    deathText.innerText = deathCount;
-
-    if (pokiReady) PokiSDK.gameplayStop();
-    adOverlay.style.display = 'flex';
-
-    const respawn = () => {
-        adOverlay.style.display = 'none';
-        isDead = false;
-        player.reset(maps[currentMap].spawn.x, maps[currentMap].spawn.y);
-        if (pokiReady) PokiSDK.gameplayStart();
+    // --- CẤU HÌNH GAME ---
+    const config = {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 800 },
+                debug: false
+            }
+        },
+        scene: [LobbyScene, GameScene]
     };
 
-    if (pokiReady) {
-        PokiSDK.commercialBreak().then(respawn).catch(respawn);
-    } else {
-        setTimeout(respawn, 1200);
-    }
-}
-
-function nextMap() {
-    if (currentMap + 1 < maps.length) {
-        currentMap++;
-        mapText.innerText = `${currentMap + 1} / ${maps.length}`;
-        player.reset(maps[currentMap].spawn.x, maps[currentMap].spawn.y);
-    } else {
-        alert("🎉 CHÚC MỪNG! BẠN ĐÃ CHẠY PARKOUR PHÁ ĐẢO TOÀN BỘ MAP!");
-        currentMap = 0;
-        deathCount = 0;
-        deathText.innerText = 0;
-        mapText.innerText = `1 / ${maps.length}`;
-        player.reset(maps[0].spawn.x, maps[0].spawn.y);
-    }
-}
-
-// === RENDER ===
-function drawMap(m) {
-    // Sàn nhà / Nền Tường
-    ctx.fillStyle = '#1e293b';
-    ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 2;
-    m.platforms.forEach(p => {
-        ctx.fillRect(p.x, p.y, p.w, p.h);
-        ctx.strokeRect(p.x, p.y, p.w, p.h);
-    });
-
-    // Bẫy Gai (Spikes)
-    ctx.fillStyle = '#ef4444';
-    m.spikes.forEach(sp => {
-        for (let x = sp.x; x < sp.x + sp.w; x += 10) {
-            ctx.beginPath();
-            ctx.moveTo(x, sp.y + sp.h);
-            ctx.lineTo(x + 5, sp.y);
-            ctx.lineTo(x + 10, sp.y + sp.h);
-            ctx.fill();
-        }
-    });
-
-    // Cổng Thoát (Exit Door)
-    ctx.save();
-    ctx.shadowColor = '#22c55e';
-    ctx.shadowBlur = 20;
-    ctx.fillStyle = '#22c55e';
-    ctx.fillRect(m.exit.x, m.exit.y, m.exit.w, m.exit.h);
-    ctx.restore();
-}
-
-function loop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const m = maps[currentMap];
-    drawMap(m);
-
-    player.update(m.platforms, m.spikes, m.exit);
-    player.draw();
-
-    requestAnimationFrame(loop);
-}
-
-player.reset(maps[0].spawn.x, maps[0].spawn.y);
-if (pokiReady) PokiSDK.gameplayStart();
-loop();
+    const game = new Phaser.Game(config);
 </script>
 </body>
 </html>
