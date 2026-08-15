@@ -87,6 +87,7 @@
 <script>
     let audioCtx = null;
     let bgmInterval = null;
+    let isBgmStarted = false;
 
     function initAudio() {
         if (!audioCtx) {
@@ -94,14 +95,60 @@
         }
     }
 
-    // Hiệu ứng âm thanh tương tác
-    function playSound(type) {
+    // Kích hoạt và duy trì nhạc nền liên tục không bao giờ tắt
+    function startPersistentBGM() {
         try {
             initAudio();
             if (!audioCtx) return;
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
+            if (isBgmStarted) return; // Chỉ chạy 1 luồng duy nhất kéo dài mãi mãi
+            isBgmStarted = true;
+
+            let chords = [
+                [261.63, 329.63, 392.00], // C major
+                [220.00, 261.63, 329.63], // A minor
+                [174.61, 220.00, 261.63], // F major
+                [196.00, 246.94, 293.66]  // G major
+            ];
+            let step = 0;
+
+            // Vòng lặp liên tục tạo nốt nhạc gối đầu nhau thành âm thanh mượt mà như video
+            bgmInterval = setInterval(() => {
+                if (!audioCtx || audioCtx.state !== 'running') return;
+                let notes = chords[step % chords.length];
+                let now = audioCtx.currentTime;
+
+                notes.forEach((freq, i) => {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    
+                    osc.type = 'sine'; // Sóng êm tai, tròn trịa
+                    osc.frequency.setValueAtTime(freq, now + i * 0.1);
+                    
+                    // Âm lượng được đẩy lên mức to rõ tương đương video thông thường
+                    gain.gain.setValueAtTime(0.001, now + i * 0.1);
+                    gain.gain.linearRampToValueAtTime(0.12, now + i * 0.1 + 0.5);
+                    gain.gain.linearRampToValueAtTime(0.001, now + 3.8);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.start(now + i * 0.1);
+                    osc.stop(now + 3.8);
+                });
+
+                step++;
+            }, 3000);
+        } catch(e) {}
+    }
+
+    // Hiệu ứng âm thanh tương tác (click, chiến thắng)
+    function playSound(type) {
+        startPersistentBGM(); // Đảm bảo bấm nút là bật nhạc luôn nếu chưa bật
+        try {
+            if (!audioCtx) return;
             let now = audioCtx.currentTime;
             let osc = audioCtx.createOscillator();
             let gain = audioCtx.createGain();
@@ -112,7 +159,7 @@
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(500, now);
                 osc.frequency.exponentialRampToValueAtTime(200, now + 0.08);
-                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.setValueAtTime(0.2, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
                 osc.start(now);
                 osc.stop(now + 0.08);
@@ -121,7 +168,7 @@
                 osc.frequency.setValueAtTime(400, now);
                 osc.frequency.setValueAtTime(600, now + 0.1);
                 osc.frequency.setValueAtTime(800, now + 0.2);
-                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.setValueAtTime(0.25, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
                 osc.start(now);
                 osc.stop(now + 0.35);
@@ -129,54 +176,10 @@
         } catch(e) {}
     }
 
-    // Nhạc nền giải đố đã được tăng âm lượng rõ và ấm hơn
-    function startBGM() {
-        stopBGM();
-        let chordSet = [
-            [261.63, 329.63, 392.00], 
-            [220.00, 261.63, 329.63], 
-            [174.61, 220.00, 261.63], 
-            [196.00, 246.94, 293.66]  
-        ];
-        let step = 0;
-
-        bgmInterval = setInterval(() => {
-            try {
-                initAudio();
-                if (!audioCtx || audioCtx.state !== 'running') return;
-                let notes = chordSet[step % chordSet.length];
-                let now = audioCtx.currentTime;
-
-                notes.forEach((freq, i) => {
-                    let osc = audioCtx.createOscillator();
-                    let gain = audioCtx.createGain();
-                    
-                    // Dùng sóng 'triangle' để âm thanh vang ấm và rõ tai hơn
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(freq, now + i * 0.05);
-                    
-                    // Tăng mức âm lượng lên cao hơn nhưng vẫn êm tai
-                    gain.gain.setValueAtTime(0.04, now + i * 0.05);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
-                    
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    
-                    osc.start(now + i * 0.05);
-                    osc.stop(now + 2.5);
-                });
-
-                step++;
-            } catch(e) {}
-        }, 2800);
-    }
-
-    function stopBGM() {
-        if (bgmInterval) {
-            clearInterval(bgmInterval);
-            bgmInterval = null;
-        }
-    }
+    // Tự động kích hoạt nhạc ngay khi người dùng click bất cứ đâu lần đầu tiên trên trang
+    window.addEventListener('click', () => {
+        startPersistentBGM();
+    }, { once: true });
 
     // Khởi tạo Poki SDK an toàn
     try {
@@ -194,7 +197,7 @@
     let timerInterval = null;
 
     function initLobby() {
-        stopBGM();
+        startPersistentBGM(); // Nhạc tiếp tục chạy xuyên suốt ở sảnh
         const gridEl = document.getElementById('lobby-grid');
         gridEl.innerHTML = '';
         for (let i = 1; i <= MAX_LEVEL; i++) {
@@ -222,7 +225,6 @@
 
     function backToLobby() {
         clearInterval(timerInterval);
-        stopBGM();
         try { if(typeof PokiSDK !== 'undefined') PokiSDK.gameplayStop(); } catch(e){}
         document.getElementById('game-screen').classList.add('hidden');
         document.getElementById('lobby-screen').classList.remove('hidden');
@@ -243,7 +245,7 @@
         createGridData();
         renderBoard();
         startTimer();
-        startBGM(); 
+        startPersistentBGM(); // Đảm bảo nhạc luôn chạy khi chơi
     }
 
     function createGridData() {
@@ -289,7 +291,6 @@
         let isWin = gridData.every(row => row.every(val => val === 1));
         if(isWin) {
             clearInterval(timerInterval);
-            stopBGM();
             playSound('win');
             alert("🌟 CHIẾN THẮNG! Chúc mừng bạn qua màn " + currentLevel);
             nextLevel();
@@ -305,7 +306,6 @@
             document.getElementById('timer').innerText = `${m}:${s}`;
             if(timeLeft <= 0) {
                 clearInterval(timerInterval);
-                stopBGM();
                 alert("Hết giờ!");
                 try {
                     if(typeof PokiSDK !== 'undefined') {
@@ -318,7 +318,6 @@
 
     function nextLevel() {
         clearInterval(timerInterval);
-        stopBGM();
         try { if(typeof PokiSDK !== 'undefined') PokiSDK.gameplayStop(); } catch(e){}
 
         if(currentLevel >= highestLevel && currentLevel < MAX_LEVEL) {
