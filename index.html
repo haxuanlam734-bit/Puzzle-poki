@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Puzzle Light - 20 Levels</title>
+    <title>Puzzle Light - 40 Levels Hardcore</title>
     <style>
         body { margin: 0; padding: 0; background-color: #0f0f1a; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden;}
         canvas { box-shadow: 0 0 40px rgba(0, 255, 255, 0.2); border-radius: 12px; border: 2px solid #2980b9; }
@@ -14,9 +14,9 @@
 <body>
 
 <script>
-    // --- LƯU TRỮ TIẾN TRÌNH (20 MÀN) ---
-    let highestPuzzleLevel = parseInt(localStorage.getItem('puzzle_unlocked_20')) || 1;
-    const MAX_LEVEL = 20;
+    // --- LƯU TRỮ TIẾN TRÌNH (40 MÀN) ---
+    let highestPuzzleLevel = parseInt(localStorage.getItem('puzzle_unlocked_40')) || 1;
+    const MAX_LEVEL = 40;
 
     PokiSDK.init().then(() => { console.log("Poki SDK init"); }).catch(() => { console.log("Poki SDK failed"); });
 
@@ -26,59 +26,59 @@
         create() {
             let g = this.make.graphics({ x: 0, y: 0, add: false });
             
-            // Vẽ Ô đèn TẮT
-            g.fillStyle(0x2c3e50); g.fillRoundedRect(0, 0, 54, 54, 6);
-            g.lineStyle(3, 0x34495e); g.strokeRoundedRect(0, 0, 54, 54, 6);
-            g.generateTexture('tile_off', 54, 54); g.clear();
+            // Ô đèn TẮT (Thu nhỏ lại tí để vừa màn hình 40 nút)
+            g.fillStyle(0x2c3e50); g.fillRoundedRect(0, 0, 48, 48, 6);
+            g.lineStyle(2, 0x34495e); g.strokeRoundedRect(0, 0, 48, 48, 6);
+            g.generateTexture('tile_off', 48, 48); g.clear();
 
-            // Vẽ Ô đèn SÁNG
-            g.fillStyle(0xf1c40f); g.fillRoundedRect(0, 0, 54, 54, 6);
-            g.lineStyle(3, 0xffeb3b); g.strokeRoundedRect(0, 0, 54, 54, 6);
-            g.generateTexture('tile_on', 54, 54); g.clear();
+            // Ô đèn SÁNG
+            g.fillStyle(0xf1c40f); g.fillRoundedRect(0, 0, 48, 48, 6);
+            g.lineStyle(2, 0xffeb3b); g.strokeRoundedRect(0, 0, 48, 48, 6);
+            g.generateTexture('tile_on', 48, 48); g.clear();
 
             this.scene.start('LobbyScene');
         }
     }
 
-    // --- SẢNH CHỜ (HIỂN THỊ 20 MÀN) ---
+    // --- SẢNH CHỜ (HIỂN THỊ 40 MÀN - CUỘN HOẶC GỌN GÀNG) ---
     class LobbyScene extends Phaser.Scene {
         constructor() { super({ key: 'LobbyScene' }); }
         create() {
             this.cameras.main.setBackgroundColor('#1a1a2e');
             
-            this.add.text(400, 45, 'THẮP SÁNG TẤT CẢ (20 MÀN)', { fontSize: '36px', fill: '#f1c40f', fontStyle: 'bold' }).setOrigin(0.5);
+            this.add.text(400, 35, 'THẮP SÁNG TẤT CẢ (40 MÀN)', { fontSize: '32px', fill: '#f1c40f', fontStyle: 'bold' }).setOrigin(0.5);
 
             // Nút Reset
             this.add.text(400, 565, '[ Xóa Dữ Liệu Chơi Lại ]', { fontSize: '14px', fill: '#95a5a6' })
                 .setOrigin(0.5).setInteractive({ useHandCursor: true })
                 .on('pointerdown', () => {
-                    localStorage.setItem('puzzle_unlocked_20', 1);
+                    localStorage.setItem('puzzle_unlocked_40', 1);
                     highestPuzzleLevel = 1;
                     this.scene.restart();
                 });
 
-            // Lưới chọn 20 màn (4 hàng x 5 cột)
-            let startX = 220, startY = 135;
+            // Lưới chọn 40 màn (8 hàng x 5 cột)
+            let startX = 220, startY = 90;
             for (let i = 1; i <= MAX_LEVEL; i++) {
                 let row = Math.floor((i - 1) / 5);
                 let col = (i - 1) % 5;
                 let x = startX + col * 90;
-                let y = startY + row * 95;
+                let y = startY + row * 58;
                 
                 let isLocked = i > highestPuzzleLevel; 
                 let bgColor = isLocked ? 0x2d3436 : 0x0984e3;
                 let textColor = isLocked ? '#636e72' : '#ffffff';
 
-                let btn = this.add.rectangle(x, y, 70, 70, bgColor).setStrokeStyle(2, 0x000000);
+                let btn = this.add.rectangle(x, y, 75, 48, bgColor).setStrokeStyle(2, 0x000000);
                 
                 if (!isLocked) {
                     btn.setInteractive({ useHandCursor: true })
                        .on('pointerdown', () => this.scene.start('GameScene', { level: i }))
                        .on('pointerover', () => btn.setFillStyle(0x74b9ff))
                        .on('pointerout', () => btn.setFillStyle(0x0984e3));
-                    this.add.text(x, y, i.toString(), { fontSize: '24px', fill: textColor, fontStyle: 'bold' }).setOrigin(0.5);
+                    this.add.text(x, y, `Lv.${i}`, { fontSize: '18px', fill: textColor, fontStyle: 'bold' }).setOrigin(0.5);
                 } else {
-                    this.add.text(x, y, '🔒', { fontSize: '22px', fill: textColor }).setOrigin(0.5);
+                    this.add.text(x, y, `🔒 ${i}`, { fontSize: '14px', fill: textColor }).setOrigin(0.5);
                 }
             }
         }
@@ -91,6 +91,7 @@
         init(data) { 
             this.level = data.level; 
             this.isSolving = false; 
+            this.timeLeft = 180; // 3 phút = 180 giây
         }
 
         create() {
@@ -98,11 +99,21 @@
             PokiSDK.gameplayStart();
             
             // Header UI
-            this.add.text(30, 20, `MÀN: ${this.level}/${MAX_LEVEL}`, { fontSize: '22px', fill: '#00d2d3', fontStyle: 'bold' });
-            this.add.text(400, 30, 'Bấm vào 1 ô để đảo trạng thái ô đó và xung quanh', { fontSize: '15px', fill: '#a4b0be' }).setOrigin(0.5);
+            this.add.text(30, 20, `MÀN: ${this.level}/${MAX_LEVEL}`, { fontSize: '20px', fill: '#00d2d3', fontStyle: 'bold' });
+            
+            // Đồng hồ đếm ngược 3 phút
+            this.timerText = this.add.text(400, 20, 'Thời gian: 03:00', { fontSize: '20px', fill: '#ff4757', fontStyle: 'bold' }).setOrigin(0.5);
+
+            // Bắt đầu đếm thời gian mỗi giây
+            this.timeEvent = this.time.addEvent({
+                delay: 1000,
+                callback: this.updateTimer,
+                callbackScope: this,
+                loop: true
+            });
 
             // Nút Quay về Sảnh
-            this.add.text(700, 20, 'Sảnh ↩', { fontSize: '18px', fill: '#ff6b6b' })
+            this.add.text(720, 20, 'Sảnh ↩', { fontSize: '18px', fill: '#ff6b6b' })
                 .setInteractive({ useHandCursor: true })
                 .on('pointerdown', () => {
                     PokiSDK.gameplayStop();
@@ -110,36 +121,20 @@
                 });
 
             // Nút Skip (Xem quảng cáo)
-            let skipBtn = this.add.rectangle(400, 550, 180, 40, 0x8e44ad, 1).setInteractive({ useHandCursor: true });
-            this.add.text(400, 550, '⏭ SKIP (QUẢNG CÁO)', { fontSize: '16px', fill: '#fff', fontStyle: 'bold' }).setOrigin(0.5);
+            let skipBtn = this.add.rectangle(400, 555, 160, 35, 0x8e44ad, 1).setInteractive({ useHandCursor: true });
+            this.add.text(400, 555, '⏭ SKIP (ADS)', { fontSize: '15px', fill: '#fff', fontStyle: 'bold' }).setOrigin(0.5);
             
             skipBtn.on('pointerover', () => skipBtn.setFillStyle(0x9b59b6));
             skipBtn.on('pointerout', () => skipBtn.setFillStyle(0x8e44ad));
             skipBtn.on('pointerdown', () => this.skipLevel());
 
-            // --- BẢNG CẤU HÌNH 20 MÀN ---
-            const levelConfigs = [
-                { size: 3, shuffle: 1 },  // 1
-                { size: 3, shuffle: 2 },  // 2
-                { size: 3, shuffle: 3 },  // 3
-                { size: 3, shuffle: 5 },  // 4
-                { size: 4, shuffle: 4 },  // 5
-                { size: 4, shuffle: 6 },  // 6
-                { size: 4, shuffle: 8 },  // 7
-                { size: 4, shuffle: 10 }, // 8
-                { size: 4, shuffle: 12 }, // 9
-                { size: 5, shuffle: 8 },  // 10
-                { size: 5, shuffle: 12 }, // 11
-                { size: 5, shuffle: 15 }, // 12
-                { size: 5, shuffle: 18 }, // 13
-                { size: 5, shuffle: 21 }, // 14
-                { size: 5, shuffle: 24 }, // 15
-                { size: 5, shuffle: 27 }, // 16
-                { size: 5, shuffle: 30 }, // 17
-                { size: 5, shuffle: 33 }, // 18
-                { size: 5, shuffle: 36 }, // 19
-                { size: 5, shuffle: 40 }  // 20 (Cực khó)
-            ];
+            // --- BẢNG CẤU HÌNH 40 MÀN (Độ khó tăng dần và bùng nổ ở màn 21-40) ---
+            const levelConfigs = [];
+            for(let i=1; i<=40; i++) {
+                let size = (i <= 10) ? (i <= 3 ? 3 : 4) : 5; // Màn đầu 3x3, 4x4, sau lên 5x5
+                let shuffle = Math.min(45, 2 + Math.floor(i * 1.2)); // Mức xáo trộn tăng dần tới 45+ bước
+                levelConfigs.push({ size: size, shuffle: shuffle });
+            }
 
             let conf = levelConfigs[this.level - 1];
             this.gridSize = conf.size;
@@ -148,12 +143,42 @@
             this.createGrid();
         }
 
+        updateTimer() {
+            if (this.isSolving) return;
+            this.timeLeft--;
+
+            let minutes = Math.floor(this.timeLeft / 60);
+            let seconds = this.timeLeft % 60;
+            let timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            this.timerText.setText(`Thời gian: ${timeString}`);
+
+            // Hết 3 phút
+            if (this.timeLeft <= 0) {
+                this.timeEvent.remove();
+                this.timeOut();
+            }
+        }
+
+        timeOut() {
+            this.isSolving = true;
+            this.add.text(400, 300, 'HẾT GIỜ!', { fontSize: '56px', fill: '#ff4757', fontStyle: 'bold' })
+                .setOrigin(0.5).setShadow(3, 3, '#000', 5);
+
+            PokiSDK.gameplayStop();
+            this.time.delayedCall(1000, () => {
+                // Hết giờ bắt buộc xem quảng cáo rồi chơi lại màn đó
+                PokiSDK.commercialBreak().then(() => {
+                    this.scene.start('GameScene', { level: this.level });
+                });
+            });
+        }
+
         createGrid() {
             this.gridData = []; 
             this.gridSprites = []; 
 
-            let tileSize = 54;
-            let spacing = 8;
+            let tileSize = 48;
+            let spacing = 6;
             let boardSize = this.gridSize * tileSize + (this.gridSize - 1) * spacing;
             let startX = (800 - boardSize) / 2 + tileSize / 2;
             let startY = (600 - boardSize) / 2 + tileSize / 2 + 10;
@@ -229,6 +254,8 @@
 
             if (isWin) {
                 this.isSolving = true;
+                if(this.timeEvent) this.timeEvent.remove();
+
                 this.add.text(400, 300, 'TUYỆT VỜI!', { fontSize: '56px', fill: '#f1c40f', fontStyle: 'bold' })
                     .setOrigin(0.5).setShadow(3, 3, '#000', 5);
                 
@@ -239,6 +266,7 @@
         skipLevel() {
             if (this.isSolving) return;
             this.isSolving = true;
+            if(this.timeEvent) this.timeEvent.remove();
             this.nextLevel(); 
         }
 
@@ -248,7 +276,7 @@
             let nextLvl = this.level + 1;
             if (this.level >= highestPuzzleLevel && nextLvl <= MAX_LEVEL) {
                 highestPuzzleLevel = nextLvl;
-                localStorage.setItem('puzzle_unlocked_20', highestPuzzleLevel);
+                localStorage.setItem('puzzle_unlocked_40', highestPuzzleLevel);
             }
 
             PokiSDK.commercialBreak().then(() => {
