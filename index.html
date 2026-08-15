@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stickman Spider Parkour - Fast Swinging Poki Edition</title>
+    <title>Stickman Katana vs Zombies - Poki Edition</title>
     <!-- Poki SDK Official Script -->
     <script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
     <style>
@@ -15,7 +15,7 @@
             -webkit-user-select: none;
         }
         body {
-            background-color: #0b0f19;
+            background-color: #05070a;
             color: #fff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
@@ -26,13 +26,13 @@
         }
         #gameContainer {
             position: relative;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.9);
+            box-shadow: 0 0 50px rgba(255, 50, 50, 0.3);
             border-radius: 12px;
             overflow: hidden;
-            border: 2px solid #2a324b;
+            border: 2px solid #2a1111;
         }
         canvas {
-            background: linear-gradient(to bottom, #090d16, #111b2d, #1a2942);
+            background: linear-gradient(to bottom, #0a0508, #180a12, #070305);
             display: block;
         }
         #ui {
@@ -43,42 +43,83 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 800;
-            text-shadow: 2px 2px 6px rgba(0,0,0,0.9);
             pointer-events: none;
             z-index: 10;
         }
+        .hp-bar-container {
+            width: 250px;
+            height: 20px;
+            background: rgba(250, 0, 0, 0.2);
+            border: 2px solid #ff3333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .hp-bar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff2222, #ff6666);
+            transition: width 0.1s ease;
+        }
         .badge {
-            background: rgba(235, 59, 90, 0.25);
-            border: 1.5px solid #eb3b5a;
-            color: #ff793f;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             padding: 6px 16px;
             border-radius: 20px;
             font-size: 16px;
         }
-        #instructions {
+        #skillsHUD {
             position: absolute;
-            bottom: 15px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(11, 15, 25, 0.88);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 10px 24px;
-            border-radius: 30px;
-            font-size: 14px;
+            display: flex;
+            gap: 15px;
             pointer-events: none;
-            text-align: center;
-            backdrop-filter: blur(5px);
             z-index: 10;
+        }
+        .skill-box {
+            width: 65px;
+            height: 65px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #ff4757;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #fff;
+            position: relative;
+            backdrop-filter: blur(4px);
+        }
+        .skill-key {
+            position: absolute;
+            top: 4px;
+            left: 6px;
+            background: #ff4757;
+            color: #fff;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        .cooldown-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            color: #ffda79;
         }
         #adOverlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.94);
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95);
             display: none;
             flex-direction: column;
             justify-content: center;
@@ -89,7 +130,7 @@
             width: 50px;
             height: 50px;
             border: 5px solid rgba(255, 255, 255, 0.2);
-            border-top: 5px solid #ff3838;
+            border-top: 5px solid #ff4757;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             margin-bottom: 20px;
@@ -103,28 +144,55 @@
 <body>
 
 <div id="gameContainer">
-    <canvas id="gameCanvas" width="960" height="540"></canvas>
+    <canvas id="gameCanvas" width="1000" height="560"></canvas>
 
     <div id="ui">
-        <div>Màn: <span id="level" style="color:#2ed573;">1</span> / 10</div>
-        <div class="badge">Khoảng cách tới đích: <span id="dist">500</span>m</div>
+        <div>
+            MÁU KATANA HERO:
+            <div class="hp-bar-container">
+                <div id="playerHpBar" class="hp-bar"></div>
+            </div>
+        </div>
+        <div class="badge">MÀN: <span id="levelNum" style="color:#ff4757;">1</span> | ZOMBIE CÒN LẠI: <span id="zombieCount">0</span></div>
     </div>
 
-    <div id="instructions">
-        🖱️ <b>Giữ Chuột Trái</b>: Bắn tơ đu dây siêu tốc | ⌨️ <b>Space</b>: Bật đà văng người / Parkour bật tường
+    <div id="skillsHUD">
+        <div class="skill-box">
+            <span class="skill-key">L-CLICK</span>
+            <span>Chém Thường</span>
+        </div>
+        <div class="skill-box">
+            <span class="skill-key">E</span>
+            <span>Tốc Biến</span>
+            <div id="cdE" class="cooldown-overlay" style="display:none;"></div>
+        </div>
+        <div class="skill-box">
+            <span class="skill-key">1</span>
+            <span>Chém Liên Hoàn</span>
+            <div id="cd1" class="cooldown-overlay" style="display:none;"></div>
+        </div>
+        <div class="skill-box">
+            <span class="skill-key">2</span>
+            <span>Gom Air Slash</span>
+            <div id="cd2" class="cooldown-overlay" style="display:none;"></div>
+        </div>
+        <div class="skill-box">
+            <span class="skill-key">3</span>
+            <span>Sóng Kiếm</span>
+            <div id="cd3" class="cooldown-overlay" style="display:none;"></div>
+        </div>
     </div>
 
     <div id="adOverlay">
         <div class="spinner"></div>
         <h2 style="color: #fff; font-size: 24px; margin-bottom: 10px;">ĐANG TẢI QUẢNG CÁO POKI...</h2>
-        <p style="color: #aaa; font-size: 14px;">Màn chơi tiếp theo sẽ bắt đầu sau giây lát</p>
+        <p style="color: #aaa; font-size: 14px;">Chuẩn bị cho đợt tấn công Zombie tiếp theo!</p>
     </div>
 </div>
 
 <script>
-// === POKI SDK INTEGRATION ===
+// === POKI SDK ===
 let pokiSdkReady = false;
-
 PokiSDK.init().then(() => {
     pokiSdkReady = true;
     PokiSDK.gameLoadingFinished();
@@ -132,117 +200,264 @@ PokiSDK.init().then(() => {
     PokiSDK.gameLoadingFinished();
 });
 
-// === GAME CONSTANTS & VARIABLES ===
+// === CANVAS SETUP ===
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const levelEl = document.getElementById('level');
-const distEl = document.getElementById('dist');
+
+const playerHpBar = document.getElementById('playerHpBar');
+const levelNumEl = document.getElementById('levelNum');
+const zombieCountEl = document.getElementById('zombieCount');
 const adOverlay = document.getElementById('adOverlay');
 
-const GRAVITY = 0.38;
-const FRICTION = 0.99; // Giảm ma sát để đu dây nhanh hơn
-const WALL_SLIDE_FRICTION = 0.85;
-
+// === GAME ENGINE VARIABLES ===
+const GROUND_Y = 460;
 let currentLevel = 1;
-const MAX_LEVELS = 10;
-let levelGoalX = 3000;
-let cameraX = 0;
 let gameOver = false;
 let levelCleared = false;
 let isPausedForAd = false;
 
-// === STICKMAN SPIDERMAN OBJECT ===
+const keys = {};
+const mouse = { x: 0, y: 0, isDown: false };
+
+// === PLAYER OBJECT ===
 const player = {
-    x: 100,
-    y: 200,
+    x: 150,
+    y: GROUND_Y,
     vx: 0,
     vy: 0,
-    radius: 12,
-    isGrounded: false,
-    isTouchingWall: false,
-    wallSide: 0,
+    speed: 9, // Tốc độ di chuyển nhanh
+    maxHp: 200,
+    hp: 200,
+    facing: 1, // 1: Phải, -1: Trái
+    isAttacking: false,
+    attackTimer: 0,
     
-    web: {
-        active: false,
-        targetX: 0,
-        targetY: 0,
-        length: 0
+    // Cooldowns (milliseconds)
+    cooldowns: {
+        E: 0,
+        skill1: 0,
+        skill2: 0,
+        skill3: 0
     },
 
-    reset(startX = 100, startY = 200) {
-        this.x = startX;
-        this.y = startY;
-        this.vx = 6; // Tốc độ xuất phát nhanh hơn
+    // State kỹ năng đặc biệt
+    isOmniSlashing: false,
+    omniTimer: 0,
+    isVortexActive: false,
+    vortexTimer: 0,
+    vortexX: 0,
+    vortexY: 0,
+
+    reset() {
+        this.x = 150;
+        this.y = GROUND_Y;
+        this.vx = 0;
         this.vy = 0;
-        this.web.active = false;
-        this.isGrounded = false;
-        this.isTouchingWall = false;
+        this.hp = this.maxHp;
+        this.isAttacking = false;
+        this.isOmniSlashing = false;
+        this.isVortexActive = false;
+        this.cooldowns = { E: 0, skill1: 0, skill2: 0, skill3: 0 };
     }
 };
 
-// === LEVEL OBJECTS ===
-let walls = [];       // Các tòa nhà / tường
-let grappleNodes = [];// CỘT / ĐIỂM BÁM LƠ LỬNG TRÊN KHÔNG
-let skeletons = [];   // KẺ ĐỊCH SKELETON ĐỨNG IM BẮN
-let bullets = [];     // ĐẠN
+// === ARRAY ENTITIES ===
+let zombies = [];
+let particles = [];
+let swordWaves = [];
 
-function setupLevel(lvl) {
-    levelGoalX = 2200 + lvl * 800;
-    walls = [];
-    grappleNodes = [];
-    skeletons = [];
-    bullets = [];
-    cameraX = 0;
-    gameOver = false;
-    levelCleared = false;
-
-    // Sàn xuất phát
-    walls.push({ x: 0, y: 380, width: 300, height: 160, isFinish: false });
-
-    let currX = 350;
-    while (currX < levelGoalX - 300) {
-        const gap = 140 + Math.random() * 120;
-        const width = 80 + Math.random() * 80;
-        const height = 150 + Math.random() * 200;
-        const y = canvas.height - height;
-
-        // Tạo tòa nhà
-        walls.push({ x: currX, y, width, height, isFinish: false });
-
-        // TẠO CỘT / ĐIỂM BÁM LƠ LỬNG TRÊN KHÔNG (Để đu dây siêu nhanh)
-        grappleNodes.push({
-            x: currX - gap / 2,
-            y: 80 + Math.random() * 120,
-            radius: 8
-        });
-
-        // TẠO SKELETON ĐỨNG IM BẮN TRÊN NÓC NHÀ
-        if (Math.random() < 0.5 + (lvl * 0.03)) {
-            skeletons.push({
-                x: currX + width / 2,
-                y: y - 25, // Đứng trên nóc
-                lastShot: 0,
-                cooldown: Math.max(1200, 2600 - lvl * 150)
-            });
-        }
-
-        currX += width + gap;
+// === ZOMBIE CLASS ===
+class Zombie {
+    constructor(x, hpMultiplier, attackDamage) {
+        this.x = x;
+        this.y = GROUND_Y;
+        this.vx = 0;
+        this.vy = 0;
+        this.maxHp = 60 * hpMultiplier;
+        this.hp = this.maxHp;
+        this.damage = attackDamage;
+        this.speed = 1.8 + Math.random() * 1.2;
+        this.isFloating = false; // Bị gom lơ lửng trên không
+        this.floatX = 0;
+        this.floatY = 0;
+        this.attackCooldown = 0;
     }
 
-    // Tòa nhà Đích
-    walls.push({ x: levelGoalX, y: 240, width: 400, height: 300, isFinish: true });
+    update() {
+        if (this.isFloating) {
+            // Giữ zombie ở vị trí lơ lửng khi dùng Skill 2
+            this.x += (this.floatX - this.x) * 0.2;
+            this.y += (this.floatY - this.y) * 0.2;
+            return;
+        }
 
-    player.reset(100, 200);
+        // Tự rơi nếu ở trên không
+        if (this.y < GROUND_Y) {
+            this.vy += 0.5;
+            this.y += this.vy;
+            if (this.y >= GROUND_Y) {
+                this.y = GROUND_Y;
+                this.vy = 0;
+            }
+        }
+
+        // Bò/đi về phía Player
+        const dx = player.x - this.x;
+        this.x += Math.sign(dx) * this.speed;
+
+        // Cắn Player nếu tới gần
+        if (Math.abs(dx) < 25 && Math.abs(player.y - this.y) < 30 && this.attackCooldown <= 0) {
+            player.hp -= this.damage;
+            this.attackCooldown = 60; // 1 giây cắn 1 lần
+            createBloodParticles(player.x, player.y - 20, 10, '#ff0000');
+        }
+
+        if (this.attackCooldown > 0) this.attackCooldown--;
+    }
+
+    draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        // Zombie Stickman (Màu xanh thối vữa / đỏ quỷ)
+        ctx.strokeStyle = '#2ed573';
+        ctx.lineWidth = 3.5;
+
+        // Đầu Zombie
+        ctx.beginPath();
+        ctx.arc(0, -35, 9, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Mắt Đỏ Quỷ sáng
+        ctx.fillStyle = '#ff4757';
+        ctx.beginPath();
+        ctx.arc(player.x > this.x ? 3 : -3, -37, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Thân & Dáng bò dị ngợm
+        ctx.beginPath();
+        ctx.moveTo(0, -26);
+        ctx.lineTo(0, -10);
+        
+        // Tay giơ ra cắn
+        const armDir = player.x > this.x ? 1 : -1;
+        ctx.moveTo(0, -20);
+        ctx.lineTo(12 * armDir, -18);
+        ctx.moveTo(0, -20);
+        ctx.lineTo(10 * armDir, -12);
+
+        // Chân
+        ctx.moveTo(0, -10);
+        ctx.lineTo(-6, 0);
+        ctx.moveTo(0, -10);
+        ctx.lineTo(6, 0);
+        ctx.stroke();
+
+        // Thanh máu Zombie
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(-15, -52, 30, 5);
+        ctx.fillStyle = '#ff4757';
+        ctx.fillRect(-15, -52, (this.hp / this.maxHp) * 30, 5);
+
+        ctx.restore();
+    }
+}
+
+// === PARTICLES & VISUAL EFFECTS ===
+function createBloodParticles(x, y, count, color = '#ff4757') {
+    for (let i = 0; i < count; i++) {
+        particles.push({
+            x, y,
+            vx: (Math.random() - 0.5) * 8,
+            vy: (Math.random() - 0.5) * 8,
+            life: 20 + Math.random() * 15,
+            color
+        });
+    }
+}
+
+// === LEVEL SETUP ===
+function setupLevel(lvl) {
+    currentLevel = lvl;
+    gameOver = false;
+    levelCleared = false;
+    zombies = [];
+    particles = [];
+    swordWaves = [];
+
+    // Càng qua màn, zombie càng trâu và đông hơn
+    const zombieCount = 6 + lvl * 5;
+    const hpMultiplier = 1 + lvl * 0.4;
+    const attackDamage = 8 + lvl * 3;
+
+    for (let i = 0; i < zombieCount; i++) {
+        // Zombie xuất hiện từ cả 2 phía ngoài màn hình
+        const spawnX = Math.random() < 0.5 ? -50 - Math.random() * 400 : canvas.width + 50 + Math.random() * 400;
+        zombies.push(new Zombie(spawnX, hpMultiplier, attackDamage));
+    }
+
+    player.reset();
 
     if (typeof PokiSDK !== 'undefined' && PokiSDK.gameplayStart) {
         PokiSDK.gameplayStart();
     }
 }
 
-// === INPUT HANDLING ===
-const mouse = { x: 0, y: 0 };
+// === INPUT LISTENERS ===
+window.addEventListener('keydown', (e) => {
+    keys[e.key.toLowerCase()] = true;
 
-window.addEventListener('mousemove', (e) => {
+    if (gameOver || levelCleared || isPausedForAd) return;
+
+    const now = Date.now();
+
+    // Skill E: Teleport Dịch Chuyển
+    if (e.key.toLowerCase() === 'e' && now > player.cooldowns.E) {
+        player.cooldowns.E = now + 1800; // 1.8s CD
+        createBloodParticles(player.x, player.y - 20, 15, '#70a1ff');
+        
+        // Teleport tới hướng chỉ chuột
+        const angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+        player.x += Math.cos(angle) * 180;
+        player.x = Math.max(30, Math.min(canvas.width - 30, player.x)); // Giữ trong map
+        
+        createBloodParticles(player.x, player.y - 20, 15, '#70a1ff');
+    }
+
+    // Skill 1: Chém Liên Hoàn (Omni-Slash)
+    if (e.key === '1' && now > player.cooldowns.skill1 && zombies.length > 0) {
+        player.cooldowns.skill1 = now + 5000; // 5s CD
+        player.isOmniSlashing = true;
+        player.omniTimer = 25; // 25 frames chém liên tục
+    }
+
+    // Skill 2: Gom Zombie Lơ Lửng & Chém Trên Không (Vortex Air Slash)
+    if (e.key === '2' && now > player.cooldowns.skill2 && zombies.length > 0) {
+        player.cooldowns.skill2 = now + 8000; // 8s CD
+        player.isVortexActive = true;
+        player.vortexTimer = 60; // 1 giây gom lơ lửng
+        player.vortexX = mouse.x;
+        player.vortexY = 180; // Độ cao lơ lửng trên trời
+    }
+
+    // Skill 3: Sóng Kiếm Diện Rộng (Sword Wave)
+    if (e.key === '3' && now > player.cooldowns.skill3) {
+        player.cooldowns.skill3 = now + 4000; // 4s CD
+        swordWaves.push({
+            x: player.x,
+            y: player.y - 20,
+            dir: player.facing,
+            speed: 16,
+            radius: 40
+        });
+    }
+});
+
+window.addEventListener('keyup', (e) => {
+    keys[e.key.toLowerCase()] = false;
+});
+
+canvas.addEventListener('mousemove', (e) => {
     const rect = canvas.getBoundingClientRect();
     mouse.x = e.clientX - rect.left;
     mouse.y = e.clientY - rect.top;
@@ -258,72 +473,30 @@ canvas.addEventListener('mousedown', (e) => {
             nextLevelWithAd();
             return;
         }
-        attachWeb();
-    }
-});
 
-window.addEventListener('mouseup', (e) => {
-    if (e.button === 0) {
-        player.web.active = false;
-    }
-});
-
-function attachWeb() {
-    if (isPausedForAd) return;
-    const targetWorldX = mouse.x + cameraX;
-    const targetWorldY = mouse.y;
-
-    // Ưu tiên bám vào các điểm/cột lơ lửng nếu nhấp gần chúng
-    let bestTarget = null;
-    let minDist = 120; // Bán kính ưu tiên bắt điểm
-
-    for (let node of grappleNodes) {
-        let d = Math.hypot(targetWorldX - node.x, targetWorldY - node.y);
-        if (d < minDist) {
-            minDist = d;
-            bestTarget = { x: node.x, y: node.y };
+        // Chém Katana thường
+        if (!player.isAttacking) {
+            player.isAttacking = true;
+            player.attackTimer = 10;
+            performNormalSlash();
         }
     }
+});
 
-    if (bestTarget) {
-        player.web.active = true;
-        player.web.targetX = bestTarget.x;
-        player.web.targetY = bestTarget.y;
-    } else {
-        // Bắn vào tường hoặc trần
-        player.web.active = true;
-        player.web.targetX = targetWorldX;
-        player.web.targetY = targetWorldY;
-    }
-
-    const dx = player.x - player.web.targetX;
-    const dy = player.y - player.web.targetY;
-    player.web.length = Math.max(30, Math.sqrt(dx * dx + dy * dy));
+// === SKILL EXECUTIONS ===
+function performNormalSlash() {
+    const attackRange = 75;
+    zombies.forEach(z => {
+        if (Math.abs(z.x - player.x) < attackRange && Math.abs(z.y - player.y) < 50) {
+            z.hp -= 35;
+            createBloodParticles(z.x, z.y - 20, 8);
+        }
+    });
 }
 
-window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space') {
-        if (isPausedForAd) return;
-
-        if (player.web.active) {
-            // Cắt tơ & BẬT ĐÀ VĂNG NGƯỜI SIÊU TỐC
-            player.web.active = false;
-            player.vy -= 8;
-            player.vx += 8; // Lực văng mạnh về phía trước
-        } else if (player.isTouchingWall) {
-            // Parkour bật tường
-            player.vy = -11;
-            player.vx += (player.wallSide === -1) ? -8 : 8;
-        } else if (player.isGrounded) {
-            player.vy = -12;
-        }
-    }
-});
-
-// === QUẢNG CÁO POKI ===
 function nextLevelWithAd() {
     if (isPausedForAd) return;
-    
+
     if (typeof PokiSDK !== 'undefined' && PokiSDK.gameplayStop) {
         PokiSDK.gameplayStop();
     }
@@ -331,332 +504,269 @@ function nextLevelWithAd() {
     isPausedForAd = true;
     adOverlay.style.display = 'flex';
 
-    const proceedToNextLevel = () => {
+    const proceed = () => {
         adOverlay.style.display = 'none';
         isPausedForAd = false;
-        currentLevel = (currentLevel < MAX_LEVELS) ? currentLevel + 1 : 1;
-        setupLevel(currentLevel);
+        setupLevel(currentLevel + 1);
     };
 
     if (pokiSdkReady) {
-        PokiSDK.commercialBreak().then(() => {
-            proceedToNextLevel();
-        }).catch(() => {
-            proceedToNextLevel();
-        });
+        PokiSDK.commercialBreak().then(proceed).catch(proceed);
     } else {
-        setTimeout(proceedToNextLevel, 1200);
+        setTimeout(proceed, 1200);
     }
 }
 
-// === GAME ENGINE & PHYSICS ===
-function update(now) {
+// === GAME UPDATE LOOP ===
+function update() {
     if (gameOver || levelCleared || isPausedForAd) return;
 
-    // Trọng lực & Ma sát
-    player.vy += GRAVITY;
-    player.vx *= FRICTION;
-    player.vy *= FRICTION;
+    // 1. DI CHUYỂN TỐC ĐỘ NHANH
+    if (keys['a'] || keys['arrowleft']) {
+        player.x -= player.speed;
+        player.facing = -1;
+    }
+    if (keys['d'] || keys['arrowright']) {
+        player.x += player.speed;
+        player.facing = 1;
+    }
+    player.x = Math.max(20, Math.min(canvas.width - 20, player.x));
 
-    // ĐU DÂY SIÊU TỐC (SWINGING PHYSICS)
-    if (player.web.active) {
-        const dx = player.x - player.web.targetX;
-        const dy = player.y - player.web.targetY;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-
-        if (dist > player.web.length) {
-            const angle = Math.atan2(dy, dx);
-            player.x = player.web.targetX + Math.cos(angle) * player.web.length;
-            player.y = player.web.targetY + Math.sin(angle) * player.web.length;
-
-            // Tăng lực kéo đu dây (Swing force) cực bốc
-            const swingForce = 1.35;
-            player.vx -= Math.cos(angle) * swingForce;
-            player.vy -= Math.sin(angle) * swingForce;
+    // 2. SKILL 1: OMNI-SLASH (CHÉM LIÊN HOÀN CHỚP NHOÁNG)
+    if (player.isOmniSlashing) {
+        player.omniTimer--;
+        if (zombies.length > 0 && player.omniTimer % 3 === 0) {
+            const randomZombie = zombies[Math.floor(Math.random() * zombies.length)];
+            player.x = randomZombie.x + (Math.random() - 0.5) * 40;
+            player.y = randomZombie.y;
+            randomZombie.hp -= 20;
+            createBloodParticles(randomZombie.x, randomZombie.y - 20, 12, '#fffa65');
+        }
+        if (player.omniTimer <= 0) {
+            player.isOmniSlashing = false;
+            player.y = GROUND_Y;
         }
     }
 
-    player.x += player.vx;
-    player.y += player.vy;
+    // 3. SKILL 2: VORTEX LIFT & AIR SLASH (GOM ZOMBIE LƠ LỬNG VÀ CHÉM TRÊN KHÔNG)
+    if (player.isVortexActive) {
+        player.vortexTimer--;
+        
+        // Bay lên trời cùng lũ zombie để chém
+        player.x = player.vortexX;
+        player.y = player.vortexY + 20;
 
-    player.isGrounded = false;
-    player.isTouchingWall = false;
+        zombies.forEach(z => {
+            z.isFloating = true;
+            z.floatX = player.vortexX + (Math.random() - 0.5) * 60;
+            z.floatY = player.vortexY + (Math.random() - 0.5) * 40;
 
-    // Va chạm tường & Tiếp đất
-    for (let wall of walls) {
-        if (player.x + player.radius > wall.x && player.x - player.radius < wall.x + wall.width) {
-            if (player.y + player.radius >= wall.y && player.y - player.radius < wall.y + 25) {
-                player.y = wall.y - player.radius;
-                player.vy = 0;
-                player.isGrounded = true;
-
-                if (wall.isFinish) {
-                    levelCleared = true;
-                    if (typeof PokiSDK !== 'undefined' && PokiSDK.gameplayStop) {
-                        PokiSDK.gameplayStop();
-                    }
-                }
+            // Chém gây sát thương liên tục trên trời
+            if (player.vortexTimer % 4 === 0) {
+                z.hp -= 15;
+                createBloodParticles(z.x, z.y, 6, '#2ed573');
             }
-        }
+        });
 
-        if (player.y + player.radius > wall.y && player.y - player.radius < wall.y + wall.height) {
-            if (Math.abs((player.x + player.radius) - wall.x) < 7) {
-                player.x = wall.x - player.radius;
-                player.vx = 0;
-                player.vy *= WALL_SLIDE_FRICTION;
-                player.isTouchingWall = true;
-                player.wallSide = 1;
-            } else if (Math.abs((player.x - player.radius) - (wall.x + wall.width)) < 7) {
-                player.x = wall.x + wall.width + player.radius;
-                player.vx = 0;
-                player.vy *= WALL_SLIDE_FRICTION;
-                player.isTouchingWall = true;
-                player.wallSide = -1;
+        if (player.vortexTimer <= 0) {
+            player.isVortexActive = false;
+            zombies.forEach(z => z.isFloating = false);
+            player.y = GROUND_Y;
+        }
+    }
+
+    // Update Chém thường
+    if (player.isAttacking) {
+        player.attackTimer--;
+        if (player.attackTimer <= 0) player.isAttacking = false;
+    }
+
+    // 4. UPDATE SÓNG KIẾM (SWORD WAVES)
+    for (let i = swordWaves.length - 1; i >= 0; i--) {
+        let w = swordWaves[i];
+        w.x += w.dir * w.speed;
+
+        // Trúng Zombie
+        zombies.forEach(z => {
+            if (Math.hypot(z.x - w.x, z.y - w.y) < w.radius + 15) {
+                z.hp -= 40;
+                createBloodParticles(z.x, z.y - 20, 10, '#70a1ff');
             }
+        });
+
+        if (w.x < 0 || w.x > canvas.width) swordWaves.splice(i, 1);
+    }
+
+    // 5. UPDATE ZOMBIES & KIỂM TRA MÁU
+    for (let i = zombies.length - 1; i >= 0; i--) {
+        let z = zombies[i];
+        z.update();
+
+        if (z.hp <= 0) {
+            createBloodParticles(z.x, z.y - 20, 25, '#2ed573');
+            zombies.splice(i, 1);
         }
     }
 
-    // SKELETON ĐỨNG IM BẮN ĐẠN
-    for (let sk of skeletons) {
-        if (now - sk.lastShot > sk.cooldown && Math.abs(player.x - sk.x) < 700) {
-            sk.lastShot = now;
-            const angle = Math.atan2(player.y - sk.y, player.x - sk.x);
-            const speed = 4.8 + currentLevel * 0.2; // Tốc độ đạn vừa phải để dễ né
-            bullets.push({
-                x: sk.x,
-                y: sk.y,
-                vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed,
-                radius: 5
-            });
-        }
+    // 6. UPDATE PARTICLES
+    for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        if (p.life <= 0) particles.splice(i, 1);
     }
 
-    // Xử lý đạn
-    for (let i = bullets.length - 1; i >= 0; i--) {
-        let b = bullets[i];
-        b.x += b.vx;
-        b.y += b.vy;
-
-        const dist = Math.hypot(player.x - b.x, player.y - b.y);
-        if (dist < player.radius + b.radius) {
-            gameOver = true;
-            if (typeof PokiSDK !== 'undefined' && PokiSDK.gameplayStop) {
-                PokiSDK.gameplayStop();
-            }
-        }
-
-        if (b.x < cameraX - 100 || b.x > cameraX + canvas.width + 100) {
-            bullets.splice(i, 1);
-        }
-    }
-
-    cameraX = player.x - 200;
-
-    if (player.y > canvas.height + 150) {
+    // Kiểm tra Thắng / Thua
+    if (player.hp <= 0) {
+        player.hp = 0;
         gameOver = true;
+        if (typeof PokiSDK !== 'undefined' && PokiSDK.gameplayStop) {
+            PokiSDK.gameplayStop();
+        }
+    } else if (zombies.length === 0) {
+        levelCleared = true;
         if (typeof PokiSDK !== 'undefined' && PokiSDK.gameplayStop) {
             PokiSDK.gameplayStop();
         }
     }
 
-    levelEl.innerText = currentLevel;
-    distEl.innerText = Math.max(0, Math.floor((levelGoalX - player.x) / 10));
+    // Update UI
+    playerHpBar.style.width = `${(player.hp / player.maxHp) * 100}%`;
+    levelNumEl.innerText = currentLevel;
+    zombieCountEl.innerText = zombies.length;
+
+    updateCooldownHUD();
 }
 
-// === RENDERING ENGINE ===
+function updateCooldownHUD() {
+    const now = Date.now();
+    const cdMap = [
+        { id: 'cdE', time: player.cooldowns.E },
+        { id: 'cd1', time: player.cooldowns.skill1 },
+        { id: 'cd2', time: player.cooldowns.skill2 },
+        { id: 'cd3', time: player.cooldowns.skill3 }
+    ];
+
+    cdMap.forEach(item => {
+        const el = document.getElementById(item.id);
+        if (now < item.time) {
+            el.style.display = 'flex';
+            el.innerText = ((item.time - now) / 1000).toFixed(1) + 's';
+        } else {
+            el.style.display = 'none';
+        }
+    });
+}
+
+// === DRAWING / GRAPHICS ===
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // 1. Vẽ Map & Mặt đất
+    ctx.fillStyle = '#12080e';
+    ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+    ctx.strokeStyle = '#ff4757';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, GROUND_Y);
+    ctx.lineTo(canvas.width, GROUND_Y);
+    ctx.stroke();
+
+    // 2. Vẽ Sóng Kiếm (Skill 3)
+    swordWaves.forEach(w => {
+        ctx.strokeStyle = '#70a1ff';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(w.x, w.y, w.radius, -Math.PI / 3, Math.PI / 3, w.dir === -1);
+        ctx.stroke();
+    });
+
+    // 3. Vẽ Zombie
+    zombies.forEach(z => z.draw());
+
+    // 4. Vẽ Stickman Katana Hero
     ctx.save();
-    ctx.translate(-cameraX, 0);
+    ctx.translate(player.x, player.y);
 
-    // 1. Vẽ Tòa nhà
-    for (let wall of walls) {
-        if (wall.isFinish) {
-            ctx.fillStyle = '#f7b731';
-            ctx.strokeStyle = '#fa8231';
-        } else {
-            ctx.fillStyle = '#1e272e';
-            ctx.strokeStyle = '#00d2d3';
-        }
-        ctx.lineWidth = 3;
-        ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
-        ctx.strokeRect(wall.x, wall.y, wall.width, wall.height);
-
-        if (wall.isFinish) {
-            ctx.fillStyle = '#2ed573';
-            ctx.fillRect(wall.x + 30, wall.y - 60, 6, 60);
-            ctx.beginPath();
-            ctx.moveTo(wall.x + 36, wall.y - 60);
-            ctx.lineTo(wall.x + 90, wall.y - 40);
-            ctx.lineTo(wall.x + 36, wall.y - 20);
-            ctx.fill();
-        }
-    }
-
-    // 2. VẼ CỘT / ĐIỂM BÁM LƠ LỬNG TRÊN KHÔNG
-    for (let node of grappleNodes) {
-        ctx.fillStyle = '#00d2d3';
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Mòng tròn phát sáng bao quanh
-        ctx.strokeStyle = 'rgba(0, 210, 211, 0.4)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, node.radius + 6, 0, Math.PI * 2);
-        ctx.stroke();
-    }
-
-    // 3. VẼ KẺ ĐỊCH SKELETON (ĐỨNG IM BẮN)
-    for (let sk of skeletons) {
-        // Thân Skeleton (Màu xám trắng)
-        ctx.strokeStyle = '#dcdde1';
-        ctx.fillStyle = '#dcdde1';
-        ctx.lineWidth = 3;
-
-        // Đầu
-        ctx.beginPath();
-        ctx.arc(sk.x, sk.y - 12, 7, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Mắt đỏ quỷ
-        ctx.fillStyle = '#ff3838';
-        ctx.beginPath();
-        ctx.arc(sk.x + (player.x > sk.x ? 2 : -2), sk.y - 13, 2, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Thân & Chân đứng im
-        ctx.strokeStyle = '#dcdde1';
-        ctx.beginPath();
-        ctx.moveTo(sk.x, sk.y - 5);
-        ctx.lineTo(sk.x, sk.y + 10);
-        ctx.moveTo(sk.x, sk.y + 10);
-        ctx.lineTo(sk.x - 6, sk.y + 22);
-        ctx.moveTo(sk.x, sk.y + 10);
-        ctx.lineTo(sk.x + 6, sk.y + 22);
-        
-        // Tay giơ cung/súng nhắm về hướng Spiderman
-        const aimAngle = Math.atan2(player.y - sk.y, player.x - sk.x);
-        ctx.moveTo(sk.x, sk.y - 2);
-        ctx.lineTo(sk.x + Math.cos(aimAngle) * 14, sk.y + Math.sin(aimAngle) * 14);
-        ctx.stroke();
-    }
-
-    // 4. Vẽ Tơ nhện
-    if (player.web.active) {
-        ctx.beginPath();
-        ctx.moveTo(player.x, player.y);
-        ctx.lineTo(player.web.targetX, player.web.targetY);
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2.5;
-        ctx.stroke();
-
-        ctx.fillStyle = '#fffa65';
-        ctx.beginPath();
-        ctx.arc(player.web.targetX, player.web.targetY, 5, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
-    // 5. Vẽ Stickman Spider-Man
-    ctx.strokeStyle = '#ff3838';
-    ctx.fillStyle = '#ff3838';
-    ctx.lineWidth = 3.5;
-
-    ctx.beginPath();
-    ctx.arc(player.x, player.y - 12, 8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(player.x + 3, player.y - 14, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = '#ff3838';
-    ctx.beginPath();
-    ctx.moveTo(player.x, player.y - 4);
-    ctx.lineTo(player.x, player.y + 12);
-    ctx.stroke();
-
-    // Tư thế chân tay chuyển động cực ngầu
-    ctx.beginPath();
-    if (player.web.active) {
-        ctx.moveTo(player.x, player.y - 2);
-        ctx.lineTo(player.x - 12, player.y - 14);
-        ctx.moveTo(player.x, player.y - 2);
-        ctx.lineTo(player.x + 12, player.y + 8);
-
-        ctx.moveTo(player.x, player.y + 12);
-        ctx.lineTo(player.x - 12, player.y + 22);
-        ctx.moveTo(player.x, player.y + 12);
-        ctx.lineTo(player.x + 14, player.y + 16);
-    } else if (player.isTouchingWall) {
-        ctx.moveTo(player.x, player.y - 2);
-        ctx.lineTo(player.x + (player.wallSide * 10), player.y - 8);
-        ctx.moveTo(player.x, player.y + 12);
-        ctx.lineTo(player.x + (player.wallSide * 12), player.y + 20);
-    } else {
-        ctx.moveTo(player.x, player.y - 2);
-        ctx.lineTo(player.x - 8, player.y + 6);
-        ctx.moveTo(player.x, player.y - 2);
-        ctx.lineTo(player.x + 8, player.y + 6);
-
-        ctx.moveTo(player.x, player.y + 12);
-        ctx.lineTo(player.x - 6, player.y + 24);
-        ctx.moveTo(player.x, player.y + 12);
-        ctx.lineTo(player.x + 6, player.y + 24);
-    }
-    ctx.stroke();
-
-    // 6. Vẽ Đạn (Bullets)
-    ctx.fillStyle = '#ff9f1a';
     ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1;
-    for (let b of bullets) {
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
+    ctx.lineWidth = 4;
+
+    // Đầu
+    ctx.beginPath();
+    ctx.arc(0, -38, 9, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Thân
+    ctx.beginPath();
+    ctx.moveTo(0, -29);
+    ctx.lineTo(0, -10);
+
+    // Chân chạy / đứng
+    ctx.moveTo(0, -10);
+    ctx.lineTo(-8 * player.facing, 0);
+    ctx.moveTo(0, -10);
+    ctx.lineTo(8 * player.facing, 0);
+    ctx.stroke();
+
+    // Tay vung KIẾM KATANA
+    ctx.strokeStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.moveTo(0, -22);
+    ctx.lineTo(12 * player.facing, -20);
+    ctx.stroke();
+
+    // LƯỠI KIẾM KATANA (SÁNG CHÓI)
+    ctx.strokeStyle = '#fffa65';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    if (player.isAttacking || player.isOmniSlashing || player.isVortexActive) {
+        // Vung kiếm chém vòng cung
+        ctx.arc(0, -20, 45, player.facing === 1 ? -Math.PI/2 : Math.PI/2, player.facing === 1 ? Math.PI/2 : -Math.PI/2);
+    } else {
+        // Cầm Katana giơ thế thủ
+        ctx.moveTo(12 * player.facing, -20);
+        ctx.lineTo(38 * player.facing, -40);
     }
+    ctx.stroke();
 
     ctx.restore();
 
-    // Màn hình Thông báo
+    // 5. Vẽ Hiệu ứng vệt chém (Particles)
+    particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    // Overlays Thắng/Thua
     if (gameOver) {
-        ctx.fillStyle = 'rgba(11, 15, 25, 0.9)';
+        ctx.fillStyle = 'rgba(10, 0, 0, 0.85)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.fillStyle = '#eb3b5a';
-        ctx.font = '800 42px Segoe UI';
+        ctx.fillStyle = '#ff4757';
+        ctx.font = '800 48px Segoe UI';
         ctx.textAlign = 'center';
-        ctx.fillText('BẠN ĐÃ BỊ HẠ!', canvas.width / 2, canvas.height / 2 - 30);
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '18px Segoe UI';
-        ctx.fillText('Thử nhắm đu vào các điểm xanh lơ lửng để bay nhanh hơn!', canvas.width / 2, canvas.height / 2 + 10);
-        ctx.fillText('Nhấp Chuột Trái để thử lại', canvas.width / 2, canvas.height / 2 + 50);
+        ctx.fillText('BẠN ĐÃ BỊ ZOMBIE CẮN CHẾT!', canvas.width / 2, canvas.height / 2 - 20);
+        ctx.fillStyle = '#fff';
+        ctx.font = '20px Segoe UI';
+        ctx.fillText('Nhấp Chuột Trái để hồi sinh đánh lại', canvas.width / 2, canvas.height / 2 + 30);
     } else if (levelCleared) {
-        ctx.fillStyle = 'rgba(11, 15, 25, 0.9)';
+        ctx.fillStyle = 'rgba(0, 10, 5, 0.85)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
         ctx.fillStyle = '#2ed573';
-        ctx.font = '800 42px Segoe UI';
+        ctx.font = '800 48px Segoe UI';
         ctx.textAlign = 'center';
-        ctx.fillText(`VƯỢT MÀN ${currentLevel} THÀNH CÔNG!`, canvas.width / 2, canvas.height / 2 - 30);
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '18px Segoe UI';
-        ctx.fillText('Đu dây siêu đẳng!', canvas.width / 2, canvas.height / 2 + 10);
-        ctx.fillText('Nhấp Chuột Trái để sang màn tiếp theo (Xem quảng cáo Poki)', canvas.width / 2, canvas.height / 2 + 50);
+        ctx.fillText(`ĐÃ DIỆT SẠCH ZOMBIE MÀN ${currentLevel}!`, canvas.width / 2, canvas.height / 2 - 20);
+        ctx.fillStyle = '#fff';
+        ctx.font = '20px Segoe UI';
+        ctx.fillText('Nhấp Chuột Trái để sang màn tiếp theo (Xem quảng cáo Poki)', canvas.width / 2, canvas.height / 2 + 30);
     }
 }
 
-// === MAIN LOOP ===
-function loop(now) {
-    update(now);
+// === GAME LOOP ===
+function loop() {
+    update();
     draw();
     requestAnimationFrame(loop);
 }
