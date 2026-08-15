@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Puzzle Light - 50 Levels</title>
+    <!-- Tích hợp Poki SDK chuẩn -->
     <script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
     <style>
         body {
@@ -84,14 +85,16 @@
 </div>
 
 <script>
-    // Khởi tạo âm thanh bằng Web Audio API an toàn, tự phát sinh tiếng kêu mà không cần file nhạc ngoài
     let audioCtx = null;
+    let bgmInterval = null;
+
     function initAudio() {
         if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
     }
 
+    // Hiệu ứng âm thanh tương tác (click, chiến thắng)
     function playSound(type) {
         try {
             initAudio();
@@ -99,12 +102,12 @@
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume();
             }
+            let now = audioCtx.currentTime;
             let osc = audioCtx.createOscillator();
             let gain = audioCtx.createGain();
             osc.connect(gain);
             gain.connect(audioCtx.destination);
 
-            let now = audioCtx.currentTime;
             if (type === 'click') {
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(500, now);
@@ -126,6 +129,53 @@
         } catch(e) {}
     }
 
+    // Nhạc nền giải đố (Ambient Lo-fi Chords) chạy lặp khi vào màn chơi
+    function startBGM() {
+        stopBGM();
+        let chordSet = [
+            [261.63, 329.63, 392.00], // C major
+            [220.00, 261.63, 329.63], // A minor
+            [174.61, 220.00, 261.63], // F major
+            [196.00, 246.94, 293.66]  // G major
+        ];
+        let step = 0;
+
+        bgmInterval = setInterval(() => {
+            try {
+                initAudio();
+                if (!audioCtx || audioCtx.state !== 'running') return;
+                let notes = chordSet[step % chordSet.length];
+                let now = audioCtx.currentTime;
+
+                notes.forEach((freq, i) => {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.05);
+                    
+                    gain.gain.setValueAtTime(0.015, now + i * 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.8);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    
+                    osc.start(now + i * 0.05);
+                    osc.stop(now + 2.8);
+                });
+
+                step++;
+            } catch(e) {}
+        }, 3000);
+    }
+
+    function stopBGM() {
+        if (bgmInterval) {
+            clearInterval(bgmInterval);
+            bgmInterval = null;
+        }
+    }
+
     // Khởi tạo Poki SDK an toàn
     try {
         if (typeof PokiSDK !== 'undefined') {
@@ -142,6 +192,7 @@
     let timerInterval = null;
 
     function initLobby() {
+        stopBGM();
         const gridEl = document.getElementById('lobby-grid');
         gridEl.innerHTML = '';
         for (let i = 1; i <= MAX_LEVEL; i++) {
@@ -169,6 +220,7 @@
 
     function backToLobby() {
         clearInterval(timerInterval);
+        stopBGM();
         try { if(typeof PokiSDK !== 'undefined') PokiSDK.gameplayStop(); } catch(e){}
         document.getElementById('game-screen').classList.add('hidden');
         document.getElementById('lobby-screen').classList.remove('hidden');
@@ -189,6 +241,7 @@
         createGridData();
         renderBoard();
         startTimer();
+        startBGM(); // Kích hoạt nhạc nền giải đố
     }
 
     function createGridData() {
@@ -234,6 +287,7 @@
         let isWin = gridData.every(row => row.every(val => val === 1));
         if(isWin) {
             clearInterval(timerInterval);
+            stopBGM();
             playSound('win');
             alert("🌟 CHIẾN THẮNG! Chúc mừng bạn qua màn " + currentLevel);
             nextLevel();
@@ -249,6 +303,7 @@
             document.getElementById('timer').innerText = `${m}:${s}`;
             if(timeLeft <= 0) {
                 clearInterval(timerInterval);
+                stopBGM();
                 alert("Hết giờ!");
                 try {
                     if(typeof PokiSDK !== 'undefined') {
@@ -261,6 +316,7 @@
 
     function nextLevel() {
         clearInterval(timerInterval);
+        stopBGM();
         try { if(typeof PokiSDK !== 'undefined') PokiSDK.gameplayStop(); } catch(e){}
 
         if(currentLevel >= highestLevel && currentLevel < MAX_LEVEL) {
