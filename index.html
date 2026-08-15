@@ -94,7 +94,7 @@
         }
     }
 
-    // Hiệu ứng âm thanh tương tác (click, chiến thắng)
+    // Hiệu ứng âm thanh tương tác
     function playSound(type) {
         try {
             initAudio();
@@ -112,7 +112,7 @@
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(500, now);
                 osc.frequency.exponentialRampToValueAtTime(200, now + 0.08);
-                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.setValueAtTime(0.15, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
                 osc.start(now);
                 osc.stop(now + 0.08);
@@ -121,7 +121,7 @@
                 osc.frequency.setValueAtTime(400, now);
                 osc.frequency.setValueAtTime(600, now + 0.1);
                 osc.frequency.setValueAtTime(800, now + 0.2);
-                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.setValueAtTime(0.2, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
                 osc.start(now);
                 osc.stop(now + 0.35);
@@ -129,14 +129,14 @@
         } catch(e) {}
     }
 
-    // Nhạc nền giải đố (Ambient Lo-fi Chords) chạy lặp khi vào màn chơi
+    // Nhạc nền giải đố đã được tăng âm lượng rõ và ấm hơn
     function startBGM() {
         stopBGM();
         let chordSet = [
-            [261.63, 329.63, 392.00], // C major
-            [220.00, 261.63, 329.63], // A minor
-            [174.61, 220.00, 261.63], // F major
-            [196.00, 246.94, 293.66]  // G major
+            [261.63, 329.63, 392.00], 
+            [220.00, 261.63, 329.63], 
+            [174.61, 220.00, 261.63], 
+            [196.00, 246.94, 293.66]  
         ];
         let step = 0;
 
@@ -151,22 +151,24 @@
                     let osc = audioCtx.createOscillator();
                     let gain = audioCtx.createGain();
                     
-                    osc.type = 'sine';
+                    // Dùng sóng 'triangle' để âm thanh vang ấm và rõ tai hơn
+                    osc.type = 'triangle';
                     osc.frequency.setValueAtTime(freq, now + i * 0.05);
                     
-                    gain.gain.setValueAtTime(0.015, now + i * 0.05);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.8);
+                    // Tăng mức âm lượng lên cao hơn nhưng vẫn êm tai
+                    gain.gain.setValueAtTime(0.04, now + i * 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
                     
                     osc.connect(gain);
                     gain.connect(audioCtx.destination);
                     
                     osc.start(now + i * 0.05);
-                    osc.stop(now + 2.8);
+                    osc.stop(now + 2.5);
                 });
 
                 step++;
             } catch(e) {}
-        }, 3000);
+        }, 2800);
     }
 
     function stopBGM() {
@@ -241,7 +243,7 @@
         createGridData();
         renderBoard();
         startTimer();
-        startBGM(); // Kích hoạt nhạc nền giải đố
+        startBGM(); 
     }
 
     function createGridData() {
