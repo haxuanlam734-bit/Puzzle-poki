@@ -6,7 +6,7 @@
     <title>Stickman Parkour - Troll Edition</title>
     <style>
         body { margin: 0; padding: 0; background-color: #111; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden;}
-        canvas { box-shadow: 0 0 30px rgba(255, 0, 0, 0.5); border-radius: 10px; border: 2px solid #e74c3c; }
+        canvas { box-shadow: 0 0 30px rgba(0, 255, 100, 0.3); border-radius: 10px; border: 2px solid #2ecc71; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
     <script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
@@ -14,37 +14,36 @@
 <body>
 
 <script>
-    // Khởi tạo Poki SDK
+    // --- LƯU TRỮ TIẾN TRÌNH ---
+    // Lấy level cao nhất đã mở khóa từ bộ nhớ trình duyệt, mặc định là 1
+    let highestLevel = parseInt(localStorage.getItem('stickman_unlocked')) || 1;
+
     PokiSDK.init().then(() => { console.log("Poki SDK initialized"); }).catch(() => { console.log("Poki SDK failed"); });
 
-    // --- SCENE TẠO HÌNH ẢNH (Không cần tải file ảnh ngoài) ---
+    // --- SCENE TẠO HÌNH ẢNH ---
     class BootScene extends Phaser.Scene {
         constructor() { super({ key: 'BootScene' }); }
         create() {
             let g = this.make.graphics({ x: 0, y: 0, add: false });
             
-            // Vẽ Người Que (Stickman)
-            g.lineStyle(3, 0xffffff);
-            g.strokeCircle(16, 10, 6); // Đầu
-            g.moveTo(16, 16); g.lineTo(16, 30); // Thân
-            g.moveTo(16, 20); g.lineTo(6, 26); // Tay trái
-            g.moveTo(16, 20); g.lineTo(26, 26); // Tay phải
-            g.moveTo(16, 30); g.lineTo(10, 44); // Chân trái
-            g.moveTo(16, 30); g.lineTo(22, 44); // Chân phải
+            // Vẽ Người Que (Đã sửa lỗi chỉ có đầu)
+            g.lineStyle(2, 0xffffff);
+            g.beginPath();
+            g.strokeCircle(16, 8, 6); // Đầu
+            g.moveTo(16, 14); g.lineTo(16, 30); // Thân
+            g.moveTo(16, 18); g.lineTo(6, 26); // Tay trái
+            g.moveTo(16, 18); g.lineTo(26, 26); // Tay phải
+            g.moveTo(16, 30); g.lineTo(8, 44); // Chân trái
+            g.moveTo(16, 30); g.lineTo(24, 44); // Chân phải
+            g.strokePath();
             g.generateTexture('stickman', 32, 48); g.clear();
 
-            // Vẽ Cửa Không Gian (Portal)
-            g.fillStyle(0x8e44ad); g.fillEllipse(30, 45, 30, 45);
-            g.lineStyle(4, 0x9b59b6); g.strokeEllipse(30, 45, 30, 45);
-            g.fillStyle(0x3498db); g.fillEllipse(30, 45, 15, 30);
-            g.generateTexture('portal', 60, 90); g.clear();
+            // Vẽ Cửa Đích (Bình thường, đẹp mắt)
+            g.fillStyle(0x2ecc71); g.fillRect(0, 0, 40, 60); // Cửa xanh lá
+            g.fillStyle(0x000000); g.fillRect(5, 5, 30, 50); // Lõi đen
+            g.generateTexture('portal', 40, 60); g.clear();
 
-            // Vẽ Cửa Giả (Troll)
-            g.fillStyle(0xc0392b); g.fillEllipse(30, 45, 30, 45);
-            g.lineStyle(4, 0xe74c3c); g.strokeEllipse(30, 45, 30, 45);
-            g.generateTexture('fake_portal', 60, 90); g.clear();
-
-            // Vẽ Gai nhọn (Spike)
+            // Vẽ Gai nhọn
             g.fillStyle(0xe74c3c); g.beginPath();
             g.moveTo(0, 32); g.lineTo(16, 0); g.lineTo(32, 32); g.closePath(); g.fillPath();
             g.generateTexture('spike', 32, 32); g.clear();
@@ -64,18 +63,26 @@
         create() {
             this.cameras.main.setBackgroundColor('#1a1a1a');
             
-            // Tiêu đề
             this.add.text(400, 60, 'STICKMAN PARKOUR', { fontSize: '48px', fill: '#fff', fontStyle: 'bold' }).setOrigin(0.5);
             this.add.text(400, 110, 'CHẾ ĐỘ: TROLL - SIÊU KHÓ', { fontSize: '24px', fill: '#e74c3c', fontStyle: 'bold' }).setOrigin(0.5);
 
-            // Vẽ 50 Map (Chỉ mở 1-5)
+            // Nút Reset Dữ Liệu (Dành cho bạn test)
+            this.add.text(400, 550, '[ Xóa Dữ Liệu Chơi Lại ]', { fontSize: '16px', fill: '#95a5a6' })
+                .setOrigin(0.5).setInteractive({ useHandCursor: true })
+                .on('pointerdown', () => {
+                    localStorage.setItem('stickman_unlocked', 1);
+                    highestLevel = 1;
+                    this.scene.restart();
+                });
+
+            // Vẽ Lưới Map (Khóa các map chưa qua)
             let startX = 130, startY = 200;
             for (let i = 1; i <= 50; i++) {
                 let row = Math.floor((i - 1) / 10), col = (i - 1) % 10;
                 let x = startX + col * 60, y = startY + row * 60;
-                let isLocked = i > 5;
-
-                let color = isLocked ? 0x333333 : 0x2ecc71; // Đen xám nếu khóa, xanh nếu mở
+                
+                let isLocked = i > highestLevel; // Khóa nếu level cao hơn mức đã chơi
+                let color = isLocked ? 0x333333 : 0x2ecc71;
                 let textColor = isLocked ? '#555' : '#fff';
 
                 let btn = this.add.rectangle(x, y, 45, 45, color);
@@ -87,7 +94,6 @@
                        .on('pointerout', () => btn.setFillStyle(0x2ecc71));
                     this.add.text(x, y, i.toString(), { fontSize: '20px', fill: textColor, fontStyle: 'bold' }).setOrigin(0.5);
                 } else {
-                    // Biểu tượng khóa (dấu X)
                     this.add.text(x, y, 'X', { fontSize: '20px', fill: textColor, fontStyle: 'bold' }).setOrigin(0.5);
                 }
             }
@@ -101,184 +107,178 @@
 
         create() {
             this.cameras.main.setBackgroundColor('#2c3e50');
-            this.add.text(20, 20, `MAP: ${this.level} - CHÚC MAY MẮN!`, { fontSize: '20px', fill: '#fff' });
+            
+            // UI
+            this.add.text(20, 20, `MAP: ${this.level}`, { fontSize: '20px', fill: '#fff' });
+            
+            // Nút Quay lại Sảnh
+            this.add.text(700, 20, 'Về Sảnh ↩', { fontSize: '18px', fill: '#e74c3c' })
+                .setInteractive({ useHandCursor: true })
+                .on('pointerdown', () => {
+                    this.physics.pause();
+                    this.scene.start('LobbyScene');
+                });
 
             PokiSDK.gameplayStart();
 
-            // Groups
+            // Khởi tạo các nhóm vật thể
             this.platforms = this.physics.add.staticGroup();
             this.spikes = this.physics.add.group({ allowGravity: false, immovable: true });
             this.fallingBlocks = this.physics.add.group({ allowGravity: false, immovable: true });
             this.invisibleWalls = this.physics.add.staticGroup();
 
-            // Player
-            this.player = this.physics.add.sprite(50, 400, 'stickman').setSize(20, 44);
+            // Khởi tạo người que
+            this.player = this.physics.add.sprite(50, 400, 'stickman').setSize(16, 42); // Hit-box thon gọn
             this.player.setCollideWorldBounds(true);
             
-            // Xử lý va chạm cơ bản
+            // Va chạm
             this.physics.add.collider(this.player, this.platforms);
             this.physics.add.collider(this.player, this.invisibleWalls);
             this.physics.add.overlap(this.player, this.spikes, this.die, null, this);
             
-            // Bệ sập (Troll)
+            // Bệ sập
             this.physics.add.collider(this.player, this.fallingBlocks, (player, block) => {
                 if (player.body.touching.down && block.body.touching.up) {
-                    this.time.delayedCall(200, () => { block.body.allowGravity = true; }, [], this);
+                    this.time.delayedCall(150, () => { block.body.allowGravity = true; }, [], this);
                 }
             });
 
             this.cursors = this.input.keyboard.createCursorKeys();
 
-            // Tải thiết kế Map
+            // Load thiết kế Map
             this.buildLevel(this.level);
         }
 
         buildLevel(level) {
-            // Hàm vẽ sàn nhanh
             const createGround = (x, y, width) => {
                 let p = this.add.tileSprite(x + width/2, y + 16, width, 32, 'block');
                 this.physics.add.existing(p, true);
                 this.platforms.add(p);
             };
 
-            // Hàm tạo Cửa đích
             const createGoal = (x, y) => {
-                this.goal = this.physics.add.sprite(x, y, 'portal').setSize(40, 80);
+                this.goal = this.physics.add.sprite(x, y, 'portal');
                 this.goal.body.allowGravity = false;
-                this.tweens.add({ targets: this.goal, angle: 360, duration: 4000, repeat: -1 }); // Xoay vòng
                 this.physics.add.overlap(this.player, this.goal, this.win, null, this);
             };
 
             if (level === 1) {
-                // Map 1: Lừa nhảy xa, bệ rớt vực
+                // Map 1: Cú nhảy sập bẫy
                 createGround(0, 500, 300);
                 
-                // Khối sập troll ở giữa vực
-                let fBlock = this.add.tileSprite(450, 500, 100, 32, 'block');
+                // Bệ rớt troll
+                let fBlock = this.add.tileSprite(450, 500, 80, 32, 'block');
                 this.physics.add.existing(fBlock);
                 this.fallingBlocks.add(fBlock);
 
                 createGround(650, 500, 150);
-                createGoal(720, 450);
+                createGoal(720, 470);
 
-                // Gai dưới vực
                 for(let i=0; i<25; i++) { this.spikes.create(16 + i*32, 584, 'spike'); }
             } 
             else if (level === 2) {
-                // Map 2: Cửa giả, gai tàng hình rớt xuống
+                // Map 2: Gai rơi từ trên trời
                 createGround(0, 500, 800);
                 
-                // Cửa giả (chạm là chết)
-                let fakeGoal = this.physics.add.sprite(750, 450, 'fake_portal');
-                fakeGoal.body.allowGravity = false;
-                this.physics.add.overlap(this.player, fakeGoal, this.die, null, this);
-
-                // Gai tàng hình bay xuống khi đi ngang qua
-                let hiddenSpike = this.spikes.create(400, 100, 'spike');
+                // Gai tàng hình bay xuống
+                let hiddenSpike = this.spikes.create(350, 100, 'spike');
                 hiddenSpike.setVisible(false);
-                this.physics.add.overlap(this.player, this.add.rectangle(400, 300, 50, 600), () => {
+                this.physics.add.overlap(this.player, this.add.rectangle(350, 300, 50, 600), () => {
                     hiddenSpike.setVisible(true);
-                    hiddenSpike.setVelocityY(800); // Rơi ụp xuống đầu
+                    hiddenSpike.setVelocityY(800); 
                 });
 
-                // Cửa thật nằm tít trên cao (phải nhảy lên bệ vô hình)
-                let invPlatform = this.add.rectangle(750, 300, 100, 32);
-                this.physics.add.existing(invPlatform, true);
-                this.platforms.add(invPlatform);
-                createGoal(750, 220);
+                let hiddenSpike2 = this.spikes.create(550, 100, 'spike');
+                hiddenSpike2.setVisible(false);
+                this.physics.add.overlap(this.player, this.add.rectangle(550, 300, 50, 600), () => {
+                    hiddenSpike2.setVisible(true);
+                    hiddenSpike2.setVelocityY(800); 
+                });
+
+                createGoal(750, 470);
             }
             else if (level === 3) {
-                // Map 3: Bức tường vô hình đẩy dội lại
+                // Map 3: Bức tường vô hình
                 createGround(0, 500, 200);
                 createGround(600, 500, 200);
-                
-                // Vực đầy gai
-                for(let i=0; i<12; i++) { this.spikes.create(220 + i*32, 584, 'spike'); }
+                for(let i=0; i<13; i++) { this.spikes.create(200 + i*32, 584, 'spike'); }
 
-                // Tường vô hình giữa vực
-                let invWall = this.add.rectangle(400, 400, 20, 300);
+                // Tường chặn tàng hình
+                let invWall = this.add.rectangle(400, 400, 20, 400);
                 this.physics.add.existing(invWall, true);
                 this.invisibleWalls.add(invWall);
 
-                // Bệ ẩn nhỏ xíu để vượt qua
-                let hiddenStep = this.add.rectangle(350, 200, 30, 10, 0x34495e);
+                // Nền tảng ẩn
+                let hiddenStep = this.add.rectangle(350, 200, 40, 15, 0x34495e);
                 this.physics.add.existing(hiddenStep, true);
                 this.platforms.add(hiddenStep);
 
-                createGoal(750, 450);
+                createGoal(750, 470);
             }
             else if (level === 4) {
-                // Map 4: Bậc thang sụp đổ liên hoàn
+                // Map 4: Cầu thang sập
                 createGround(0, 550, 150);
                 for(let i=0; i<5; i++) {
-                    let block = this.add.tileSprite(250 + i*100, 500 - i*50, 60, 32, 'block');
+                    let block = this.add.tileSprite(250 + i*90, 500 - i*60, 60, 32, 'block');
                     this.physics.add.existing(block);
                     this.fallingBlocks.add(block);
                 }
                 createGround(700, 200, 100);
-                createGoal(750, 150);
+                createGoal(750, 170);
                 for(let i=0; i<25; i++) { this.spikes.create(16 + i*32, 584, 'spike'); }
             }
             else if (level === 5) {
-                // Map 5: Tổ hợp troll
-                createGround(0, 500, 100);
+                // Map 5: Cửa bị chặn, phải tìm đường hầm
+                createGround(0, 500, 150);
                 
-                // Gai hiện ra khi đi qua
-                let trap = this.spikes.create(150, 484, 'spike').setVisible(false);
-                this.physics.add.overlap(this.player, this.add.rectangle(100, 400, 20, 200), () => trap.setVisible(true));
-
-                // Bệ rớt
-                let block = this.add.tileSprite(300, 400, 50, 32, 'block');
-                this.physics.add.existing(block);
-                this.fallingBlocks.add(block);
-
-                // Tường vô hình chặn đích
-                let wall = this.add.rectangle(700, 300, 20, 400);
+                // Tường chặn cửa
+                let wall = this.add.tileSprite(650, 350, 32, 300, 'block');
                 this.physics.add.existing(wall, true);
-                this.invisibleWalls.add(wall);
-
+                this.platforms.add(wall);
+                
                 createGround(650, 500, 150);
-                createGoal(750, 450);
+                createGoal(750, 470);
 
-                // Lỗ bí mật để vào đích từ dưới lòng đất
-                createGround(300, 600, 500); 
-                for(let i=0; i<25; i++) { this.spikes.create(16 + i*32, 650, 'spike'); } // Gai dưới cùng
+                // Đường hầm dưới lòng đất
+                let hHole = this.add.tileSprite(250, 400, 50, 32, 'block');
+                this.physics.add.existing(hHole);
+                this.fallingBlocks.add(hHole);
+
+                createGround(300, 600, 400); 
+                for(let i=0; i<25; i++) { this.spikes.create(16 + i*32, 650, 'spike'); }
+            } else {
+                // Map mặc định nếu bạn chơi tới map 6 (Chưa thiết kế)
+                createGround(0, 500, 800);
+                this.add.text(400, 300, 'MAP NÀY ĐANG PHÁT TRIỂN', { fontSize: '24px', fill: '#fff' }).setOrigin(0.5);
+                createGoal(750, 470);
             }
         }
 
         update() {
-            // Điều khiển Player - Di chuyển mượt mà kiểu Parkour
             let speed = 250;
-            let jumpForce = -500;
+            let jumpForce = -550; // Sức nhảy mạnh hơn chút để hợp với cửa mới
 
             if (this.cursors.left.isDown) {
                 this.player.setVelocityX(-speed);
-                this.player.flipX = true; // Xoay người que
             } else if (this.cursors.right.isDown) {
                 this.player.setVelocityX(speed);
-                this.player.flipX = false;
             } else {
                 this.player.setVelocityX(0);
             }
 
-            // Xử lý nhảy
             if (this.cursors.up.isDown && this.player.body.touching.down) {
                 this.player.setVelocityY(jumpForce);
             }
 
-            // Chết khi rớt khỏi bản đồ
-            if (this.player.y > 600) { this.die(); }
+            if (this.player.y > 650) { this.die(); }
         }
 
         die() {
             this.physics.pause();
-            this.player.setTint(0xff0000); // Đổi màu đỏ khi chết
-            
-            // Lắc màn hình tăng độ ức chế
+            this.player.setTint(0xff0000); 
             this.cameras.main.shake(200, 0.02);
-            
             this.time.delayedCall(500, () => {
-                this.scene.restart(); // Chơi lại màn hiện tại
+                this.scene.restart();
             });
         }
 
@@ -287,27 +287,36 @@
             this.player.setVisible(false);
             PokiSDK.gameplayStop();
 
-            // Chuyển màn mờ dần
-            this.cameras.main.fade(1000, 255, 255, 255);
-            this.time.delayedCall(1000, () => {
+            // Cập nhật level cao nhất đã mở
+            let nextLevel = this.level + 1;
+            if (this.level >= highestLevel && nextLevel <= 50) {
+                highestLevel = nextLevel;
+                localStorage.setItem('stickman_unlocked', highestLevel);
+            }
+
+            // Chuyển màn hình đen dần
+            this.cameras.main.fade(800, 0, 0, 0);
+            this.time.delayedCall(800, () => {
+                // Bật quảng cáo của Poki giữa các màn
                 PokiSDK.commercialBreak().then(() => {
-                    this.scene.start('LobbyScene');
+                    if (nextLevel <= 50) {
+                        this.scene.start('GameScene', { level: nextLevel }); // Chuyển thẳng map tiếp theo
+                    } else {
+                        this.scene.start('LobbyScene'); // Về sảnh nếu hết map
+                    }
                 });
             });
         }
     }
 
-    // --- KHỞI TẠO GAME ---
+    // --- CẤU HÌNH ---
     const config = {
         type: Phaser.AUTO,
         width: 800,
         height: 600,
         physics: {
             default: 'arcade',
-            arcade: {
-                gravity: { y: 1200 }, // Trọng lực mạnh = Rơi nhanh hơn (cảm giác khó hơn)
-                debug: false // Đổi thành true nếu bạn muốn xem hit-box để dễ code bẫy
-            }
+            arcade: { gravity: { y: 1200 }, debug: false }
         },
         scene: [BootScene, LobbyScene, GameScene]
     };
