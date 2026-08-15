@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stickman Jailbreak: Escape the Prison</title>
+    <title>Stickman Hardcore Parkour: Escape</title>
     <!-- Poki SDK Official Script -->
     <script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>
     <style>
@@ -15,7 +15,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         body {
-            background-color: #090d16;
+            background-color: #030712;
             color: #fff;
             display: flex;
             justify-content: center;
@@ -25,85 +25,61 @@
         }
         #gameContainer {
             position: relative;
-            box-shadow: 0 0 50px rgba(56, 189, 248, 0.3);
+            box-shadow: 0 0 50px rgba(56, 189, 248, 0.4);
             border-radius: 12px;
             overflow: hidden;
             border: 2px solid #38bdf8;
-            background: #111827;
+            background: #000;
         }
         canvas {
             display: block;
-            background: #1f2937;
+            background: #0b0f19;
         }
         #uiOverlay {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 15px;
+            left: 20px;
+            right: 20px;
             display: flex;
-            flex-direction: column;
             justify-content: space-between;
             align-items: center;
-            padding: 20px;
             pointer-events: none;
+            z-index: 10;
         }
-        .header-badge {
-            background: rgba(17, 24, 39, 0.85);
+        .badge {
+            background: rgba(15, 23, 42, 0.85);
             border: 1.5px solid #38bdf8;
             color: #38bdf8;
-            padding: 10px 24px;
+            padding: 8px 18px;
             border-radius: 20px;
-            font-size: 18px;
             font-weight: 800;
-            backdrop-filter: blur(5px);
-            pointer-events: auto;
-        }
-        #dialogBox {
-            background: rgba(17, 24, 39, 0.92);
-            border: 2px solid #38bdf8;
-            border-radius: 12px;
-            padding: 16px 24px;
-            width: 80%;
-            text-align: center;
-            font-size: 16px;
-            color: #f3f4f6;
-            backdrop-filter: blur(6px);
-            margin-bottom: 10px;
-            pointer-events: auto;
-            min-height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #choicesContainer {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            pointer-events: auto;
-            width: 90%;
-            justify-content: center;
-        }
-        .choice-btn {
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            border: 2px solid #38bdf8;
-            color: #fff;
-            padding: 14px 20px;
-            border-radius: 10px;
             font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            flex: 1;
-            max-width: 260px;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            backdrop-filter: blur(4px);
         }
-        .choice-btn:hover {
+        #controlsHUD {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .key-card {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid #38bdf8;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+        .key {
             background: #38bdf8;
-            color: #0f172a;
-            transform: translateY(-3px);
-            box-shadow: 0 6px 18px rgba(56, 189, 248, 0.4);
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 900;
         }
         #adOverlay {
             position: absolute;
@@ -114,7 +90,6 @@
             justify-content: center;
             align-items: center;
             z-index: 100;
-            pointer-events: auto;
         }
         .spinner {
             width: 50px;
@@ -137,384 +112,387 @@
     <canvas id="gameCanvas" width="960" height="540"></canvas>
 
     <div id="uiOverlay">
-        <div class="header-badge">
-            PRISON ESCAPE - LEVEL <span id="levelNum">1</span>/5
-        </div>
+        <div class="badge">MAP: <span id="mapText" style="color:#fff;">1 / 3</span></div>
+        <div class="badge" style="border-color:#ef4444; color:#ef4444;">DEATHS: <span id="deathText" style="color:#fff;">0</span></div>
+    </div>
 
-        <div>
-            <div id="dialogBox">
-                <span id="storyText">Bạn đang bị nhốt trong phòng giam an ninh cao. Hãy chọn công cụ để bắt đầu vượt ngục!</span>
-            </div>
-
-            <div id="choicesContainer">
-                <!-- Dynamic Buttons -->
-            </div>
-        </div>
+    <div id="controlsHUD">
+        <div class="key-card"><span class="key">A / D</span> Di chuyển</div>
+        <div class="key-card"><span class="key">W / Space</span> Nhảy / Wall Jump</div>
+        <div class="key-card"><span class="key">S</span> Trượt</div>
+        <div class="key-card"><span class="key">Shift</span> Dash (Lướt)</div>
     </div>
 
     <!-- POKI AD OVERLAY -->
     <div id="adOverlay">
         <div class="spinner"></div>
-        <h2 style="color: #38bdf8; font-size: 24px; margin-bottom: 8px;">ĐANG TẢI QUẢNG CÁO POKI...</h2>
-        <p style="color: #9ca3af; font-size: 14px;">Bị Cảnh Sát Bắt! Đang chuẩn bị thử lại...</p>
+        <h2 style="color: #38bdf8; font-size: 22px; margin-bottom: 8px;">ĐANG TẢI QUẢNG CÁO POKI...</h2>
+        <p style="color: #9ca3af; font-size: 14px;">Bạn đã bỏ mạng! Chuẩn bị hồi sinh tại Checkpoint...</p>
     </div>
 </div>
 
 <script>
-// === POKI SDK INTEGRATION ===
+// === POKI SDK ===
 let pokiReady = false;
 PokiSDK.init().then(() => {
     pokiReady = true;
     PokiSDK.gameLoadingFinished();
-}).catch(() => {
-    PokiSDK.gameLoadingFinished();
-});
+}).catch(() => PokiSDK.gameLoadingFinished());
 
-// === CANVAS SETUP ===
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-const levelNumEl = document.getElementById('levelNum');
-const storyTextEl = document.getElementById('storyText');
-const choicesContainer = document.getElementById('choicesContainer');
+const mapText = document.getElementById('mapText');
+const deathText = document.getElementById('deathText');
 const adOverlay = document.getElementById('adOverlay');
 
-// === GAME STATE ===
-let currentLevelIndex = 0;
-let isAnimating = false;
-let animTimer = 0;
-let currentOutcome = null;
+const GRAVITY = 0.55;
+let currentMap = 0;
+let deathCount = 0;
+let isDead = false;
 
-// === LEVEL DATA (CÀNG VỀ SAU CÀNG KHÓ & BẮT MẮT) ===
-const levels = [
-    {
-        id: 1,
-        title: "PHÒNG GIAM AN NINH (CELL BLOCK)",
-        desc: "Bạn đang ở trong phòng giam locked. Làm sao để thoát ra?",
-        bgType: "cell",
-        choices: [
-            {
-                text: "🔨 Cái Dũa Cắt Sắt",
-                success: false,
-                msg: "Dũa phát ra tiếng động quá lớn! Cảnh sát ngay lập tức ập vào tóm gọn bạn.",
-                anim: "caught_file"
-            },
-            {
-                text: "🎂 Bánh Ngọt Chứa Cưa",
-                success: true,
-                msg: "Bạn cưa đứt thanh sắt êm ru và chui ra hành lang thành công!",
-                anim: "escape_cell"
-            },
-            {
-                text: "💥 Quả Mìn Tự Chế",
-                success: false,
-                msg: "Quả mìn phát nổ thổi bay cả căn phòng. Bạn bị ngất và cảnh sát hốt đi ngay lập tức!",
-                anim: "caught_explosion"
+// === STICKMAN PARKOUR PLAYER ===
+const player = {
+    x: 50,
+    y: 100,
+    w: 20,
+    h: 50,
+    vx: 0,
+    vy: 0,
+    speed: 5.5,
+    jumpForce: -11.5,
+    isGrounded: false,
+    isWalled: false,
+    wallDir: 0,
+    facing: 1,
+    
+    // Kỹ năng Parkour
+    isDashing: false,
+    canDash: true,
+    dashTimer: 0,
+    isSliding: false,
+
+    reset(spawnX, spawnY) {
+        this.x = spawnX;
+        this.y = spawnY;
+        this.vx = 0;
+        this.vy = 0;
+        this.isGrounded = false;
+        this.isWalled = false;
+        this.isDashing = false;
+        this.canDash = true;
+        this.h = 50;
+    },
+
+    update(platforms, spikes, exitDoor) {
+        if (isDead) return;
+
+        // Trượt đất (Slide)
+        if (keys['s'] && this.isGrounded) {
+            this.isSliding = true;
+            this.h = 25;
+        } else {
+            this.isSliding = false;
+            this.h = 50;
+        }
+
+        // Dash
+        if (keys['shift'] && this.canDash && !this.isDashing) {
+            this.isDashing = true;
+            this.canDash = false;
+            this.dashTimer = 10;
+        }
+
+        if (this.isDashing) {
+            this.vx = this.facing * 14;
+            this.vy = 0;
+            this.dashTimer--;
+            if (this.dashTimer <= 0) this.isDashing = false;
+        } else {
+            // Di chuyển ngang
+            if (keys['a'] || keys['arrowleft']) {
+                this.vx = -this.speed;
+                this.facing = -1;
+            } else if (keys['d'] || keys['arrowright']) {
+                this.vx = this.speed;
+                this.facing = 1;
+            } else {
+                this.vx *= 0.8;
             }
+
+            // Trọng lực (Tụt tường chậm hơn)
+            if (this.isWalled && this.vy > 0) {
+                this.vy += GRAVITY * 0.3;
+            } else {
+                this.vy += GRAVITY;
+            }
+        }
+
+        // Cập nhật vị trí X & Va chạm
+        this.x += this.vx;
+        this.checkCollisionX(platforms);
+
+        // Cập nhật vị trí Y & Va chạm
+        this.y += this.vy;
+        this.isGrounded = false;
+        this.isWalled = false;
+        this.checkCollisionY(platforms);
+
+        if (this.isGrounded) this.canDash = true;
+
+        // Va chạm bẫy gai -> THUA
+        spikes.forEach(sp => {
+            if (this.x < sp.x + sp.w && this.x + this.w > sp.x &&
+                this.y < sp.y + sp.h && this.y + this.h > sp.y) {
+                die();
+            }
+        });
+
+        // Tụt xuống vực -> THUA
+        if (this.y > canvas.height + 100) die();
+
+        // Chạm Cổng Thoát -> LÊN MAP NEXT
+        if (this.x < exitDoor.x + exitDoor.w && this.x + this.w > exitDoor.x &&
+            this.y < exitDoor.y + exitDoor.h && this.y + this.h > exitDoor.y) {
+            nextMap();
+        }
+    },
+
+    checkCollisionX(platforms) {
+        platforms.forEach(p => {
+            if (this.y + this.h > p.y && this.y < p.y + p.h) {
+                if (this.x + this.w > p.x && this.x < p.x) { // Đâm vào lề trái
+                    this.x = p.x - this.w;
+                    if (!this.isGrounded) { this.isWalled = true; this.wallDir = -1; }
+                } else if (this.x < p.x + p.w && this.x + this.w > p.x + p.w) { // Đâm vào lề phải
+                    this.x = p.x + p.w;
+                    if (!this.isGrounded) { this.isWalled = true; this.wallDir = 1; }
+                }
+            }
+        });
+    },
+
+    checkCollisionY(platforms) {
+        platforms.forEach(p => {
+            if (this.x + this.w > p.x && this.x < p.x + p.w) {
+                if (this.y + this.h > p.y && this.y < p.y) { // Đứng trên sàn
+                    this.y = p.y - this.h;
+                    this.vy = 0;
+                    this.isGrounded = true;
+                } else if (this.y < p.y + p.h && this.y + this.h > p.y + p.h) { // Cụng đầu
+                    this.y = p.y + p.h;
+                    this.vy = 0;
+                }
+            }
+        });
+    },
+
+    draw() {
+        ctx.save();
+        ctx.translate(this.x + this.w / 2, this.y + this.h);
+
+        ctx.strokeStyle = this.isDashing ? '#38bdf8' : '#ffffff';
+        ctx.fillStyle = '#ffffff';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+
+        const h = this.h;
+
+        // Head
+        ctx.beginPath();
+        ctx.arc(0, -h + 8, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Body
+        ctx.beginPath();
+        ctx.moveTo(0, -h + 15);
+        ctx.lineTo(0, -h / 2);
+        ctx.stroke();
+
+        // Arms & Legs Animation
+        ctx.beginPath();
+        ctx.moveTo(0, -h + 20);
+        ctx.lineTo(-10 * this.facing, -h + 10);
+        ctx.moveTo(0, -h + 20);
+        ctx.lineTo(10 * this.facing, -h + 10);
+
+        ctx.moveTo(0, -h / 2);
+        ctx.lineTo(-8, 0);
+        ctx.moveTo(0, -h / 2);
+        ctx.lineTo(8, 0);
+        ctx.stroke();
+
+        ctx.restore();
+    }
+};
+
+// === MAP DESIGN (RỐI RẮN & KHÓ DẦN) ===
+const maps = [
+    // MAP 1: CƠ BẢN & WALL JUMP
+    {
+        spawn: { x: 40, y: 380 },
+        exit: { x: 880, y: 80, w: 40, h: 60 },
+        platforms: [
+            { x: 0, y: 440, w: 200, h: 100 },
+            { x: 260, y: 360, w: 100, h: 180 },
+            { x: 440, y: 280, w: 30, h: 260 }, // Tường Wall Jump
+            { x: 550, y: 220, w: 30, h: 320 }, // Tường Wall Jump 2
+            { x: 680, y: 160, w: 280, h: 400 }
+        ],
+        spikes: [
+            { x: 200, y: 520, w: 480, h: 20 },
+            { x: 280, y: 340, w: 40, h: 20 }
         ]
     },
+    // MAP 2: BẪY GAI DENSE & KHE HẸP
     {
-        id: 2,
-        title: "HÀNH LANG GIÁM SÁT (HALLWAY)",
-        desc: "Camera và Cảnh sát đang tuần tra hành lang. Đi đường nào?",
-        bgType: "hallway",
-        choices: [
-            {
-                text: "📦 Trốn Trong Thùng Giấy",
-                success: true,
-                msg: "Trốn kiểu 'Metal Gear Solid'! Cảnh sát đi qua mà không hề hay biết.",
-                anim: "escape_box"
-            },
-            {
-                text: "🏃 Chạy Nước Rút",
-                success: false,
-                msg: "Camera quét trúng bạn và còi báo động vang lên! Bạn bị gậy điện quật ngã.",
-                anim: "caught_sprint"
-            },
-            {
-                text: "💡 Tắt Cầu Dao Điện",
-                success: false,
-                msg: "Hệ thống điện dự phòng kích hoạt tức thì. Cảnh sát tóm bạn ngay tại chỗ cắm điện!",
-                anim: "caught_electric"
-            }
+        spawn: { x: 50, y: 400 },
+        exit: { x: 880, y: 400, w: 40, h: 60 },
+        platforms: [
+            { x: 0, y: 460, w: 140, h: 80 },
+            { x: 190, y: 380, w: 70, h: 160 },
+            { x: 310, y: 300, w: 70, h: 240 },
+            { x: 430, y: 220, w: 120, h: 20 }, // Khe hẹp trượt
+            { x: 600, y: 300, w: 60, h: 240 },
+            { x: 720, y: 380, w: 60, h: 160 },
+            { x: 840, y: 460, w: 120, h: 80 }
+        ],
+        spikes: [
+            { x: 140, y: 520, w: 700, h: 20 },
+            { x: 320, y: 280, w: 40, h: 20 },
+            { x: 610, y: 280, w: 40, h: 20 }
         ]
     },
+    // MAP 3: RỐI MẮT MEGA PARKOUR (SIÊU KHÓ)
     {
-        id: 3,
-        title: "ỐNG THÔNG GIÓ (VENTILATION)",
-        desc: "Bạn đang chui trong đường ống hẹp. Có 3 ngã rẽ:",
-        bgType: "vents",
-        choices: [
-            {
-                text: "⬅️ Ngã Rẽ Trái (Mùi Hương)",
-                success: false,
-                msg: "Đường dẫn thẳng đến phòng ăn của cảnh sát! Bạn rơi ngay xuống bàn ăn của sếp nhà tù.",
-                anim: "caught_cafeteria"
-            },
-            {
-                text: "⬆️ Ngã Trực Diện (Có Gió)",
-                success: true,
-                msg: "Lần theo luồng gió mát, bạn bò thành công ra ngoài mái nhà tù!",
-                anim: "escape_roof"
-            },
-            {
-                text: "➡️ Ngã Rẽ Phải (Tối Om)",
-                success: false,
-                msg: "Bạn chui nhầm vào máy quạt thông gió công suất lớn và bị mắc kẹt!",
-                anim: "caught_fan"
-            }
-        ]
-    },
-    {
-        id: 4,
-        title: "SÂN NHÀ TÙ & THÁP CANH (COURTYARD)",
-        desc: "Đèn pha từ tháp canh đang quét liên tục. Làm sao để vượt qua rào gai?",
-        bgType: "courtyard",
-        choices: [
-            {
-                text: "🚀 Tên Lửa Cầm Tay",
-                success: false,
-                msg: "Tên lửa quá mạnh kéo bạn đập thẳng vào tường tháp canh!",
-                anim: "caught_rocket"
-            },
-            {
-                text: "🥋 Dùng Dây Móc Neo",
-                success: false,
-                msg: "Dây móc bị đứt giữa chừng, bạn rơi xuống đúng tầm ngắm của chó nghiệp vụ!",
-                anim: "caught_dog"
-            },
-            {
-                text: "🕳️ Chui Theo Sân Đào Hầm",
-                success: true,
-                msg: "Bạn chui qua đường hầm cũ rích và trèo ra sát chân tường ngoài!",
-                anim: "escape_tunnel"
-            }
-        ]
-    },
-    {
-        id: 5,
-        title: "BỨC TƯỜNG CUỐI CÙNG (OUTER WALL)",
-        desc: "Thoát ra ngoài tự do! Phương tiện nào giúp bạn trốn thoát hoàn toàn?",
-        bgType: "outer_wall",
-        choices: [
-            {
-                text: "🚁 Trực Thăng Cứu Hộ",
-                success: true,
-                msg: "BẢO HOÀN THÀNH! Bạn đu dây trực thăng trốn thoát khỏi nhà tù thành công vĩ đại!",
-                anim: "escape_heli"
-            },
-            {
-                text: "🚗 Xe Thể Thao Đậu Cạnh",
-                success: false,
-                msg: "Xe hết xăng giữa đường! Cảnh sát dùng xe mô tô đuổi kịp và còng tay bạn.",
-                anim: "caught_car"
-            },
-            {
-                text: "🪂 Nhảy Dù Bằng Bạt",
-                success: false,
-                msg: "Dù không mở! Bạn rơi thẳng vào chiếc xe cảnh sát đang đỗ ở dưới.",
-                anim: "caught_parachute"
-            }
+        spawn: { x: 30, y: 80 },
+        exit: { x: 460, y: 260, w: 40, h: 60 },
+        platforms: [
+            { x: 0, y: 140, w: 100, h: 20 },
+            { x: 150, y: 180, w: 40, h: 20 },
+            { x: 240, y: 240, w: 40, h: 300 },
+            { x: 340, y: 140, w: 40, h: 400 },
+            { x: 450, y: 320, w: 100, h: 20 },
+            { x: 600, y: 240, w: 40, h: 300 },
+            { x: 700, y: 160, w: 40, h: 380 },
+            { x: 800, y: 100, w: 160, h: 20 },
+            { x: 860, y: 440, w: 100, h: 100 }
+        ],
+        spikes: [
+            { x: 100, y: 520, w: 760, h: 20 },
+            { x: 240, y: 220, w: 40, h: 20 },
+            { x: 340, y: 120, w: 40, h: 20 },
+            { x: 700, y: 140, w: 40, h: 20 },
+            { x: 820, y: 80, w: 120, h: 20 }
         ]
     }
 ];
 
-// === RENDER ENGINE (BACKGROUNDS & ANIMATIONS) ===
-function drawBackground(type) {
-    // 1. Vẽ khung cảnh nền
-    ctx.fillStyle = '#111827';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+// === CONTROLS ===
+const keys = {};
+window.addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    keys[k] = true;
 
-    if (type === "cell") {
-        // Tường phòng giam
-        ctx.fillStyle = '#374151';
-        ctx.fillRect(0, 0, canvas.width, canvas.height - 80);
-        
-        // Cửa sắt giam
-        ctx.strokeStyle = '#9ca3af';
-        ctx.lineWidth = 8;
-        for(let x = 300; x <= 660; x += 40) {
-            ctx.beginPath();
-            ctx.moveTo(x, 100);
-            ctx.lineTo(x, canvas.height - 80);
-            ctx.stroke();
-        }
-    } else if (type === "hallway") {
-        // Hành lang
-        ctx.fillStyle = '#1f2937';
-        ctx.fillRect(0, 0, canvas.width, canvas.height - 80);
-        // Đèn đỏ báo động
-        ctx.fillStyle = '#ef4444';
-        ctx.beginPath();
-        ctx.arc(canvas.width / 2, 40, 15, 0, Math.PI * 2);
-        ctx.fill();
-    } else if (type === "vents") {
-        // Đường ống thông gió
-        ctx.fillStyle = '#4b5563';
-        ctx.fillRect(0, 0, canvas.width, canvas.height - 80);
-        ctx.strokeStyle = '#1f2937';
-        ctx.lineWidth = 12;
-        ctx.strokeRect(50, 50, canvas.width - 100, canvas.height - 180);
-    } else if (type === "courtyard" || type === "outer_wall") {
-        // Sân / Bức tường đêm
-        ctx.fillStyle = '#030712';
-        ctx.fillRect(0, 0, canvas.width, canvas.height - 80);
-        // Đèn pha
-        ctx.fillStyle = 'rgba(254, 240, 138, 0.15)';
-        ctx.beginPath();
-        ctx.moveTo(canvas.width / 2, 0);
-        ctx.lineTo(canvas.width / 2 - 200, canvas.height - 80);
-        ctx.lineTo(canvas.width / 2 + 200, canvas.height - 80);
-        ctx.fill();
-    }
-
-    // Mặt đất
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
-    ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(0, canvas.height - 80);
-    ctx.lineTo(canvas.width, canvas.height - 80);
-    ctx.stroke();
-}
-
-// VẼ STICKMAN PLAYER
-function drawStickman(x, y, facing = 1, isPolice = false) {
-    ctx.save();
-    ctx.translate(x, y);
-
-    ctx.strokeStyle = isPolice ? '#3b82f6' : '#ffffff';
-    ctx.fillStyle = isPolice ? '#3b82f6' : '#ffffff';
-    ctx.lineWidth = 6;
-    ctx.lineCap = 'round';
-
-    // Đầu
-    ctx.beginPath();
-    ctx.arc(0, -60, 12, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Thân
-    ctx.beginPath();
-    ctx.moveTo(0, -48);
-    ctx.lineTo(0, -18);
-    ctx.stroke();
-
-    // Tay
-    ctx.beginPath();
-    ctx.moveTo(0, -40);
-    ctx.lineTo(-12 * facing, -20);
-    ctx.moveTo(0, -40);
-    ctx.lineTo(12 * facing, -20);
-    ctx.stroke();
-
-    // Chân
-    ctx.beginPath();
-    ctx.moveTo(0, -18);
-    ctx.lineTo(-10 * facing, 0);
-    ctx.moveTo(0, -18);
-    ctx.lineTo(10 * facing, 0);
-    ctx.stroke();
-
-    // Nón Cảnh Sát
-    if (isPolice) {
-        ctx.fillStyle = '#1d4ed8';
-        ctx.fillRect(-14, -78, 28, 8);
-    }
-
-    ctx.restore();
-}
-
-// === GAME CONTROLLER & LOGIC ===
-function loadLevel(index) {
-    currentLevelIndex = index;
-    const lvl = levels[currentLevelIndex];
-    levelNumEl.innerText = lvl.id;
-    storyTextEl.innerText = lvl.desc;
-
-    // Render Buttons
-    choicesContainer.innerHTML = '';
-    lvl.choices.forEach((choice, i) => {
-        const btn = document.createElement('button');
-        btn.className = 'choice-btn';
-        btn.innerHTML = choice.text;
-        btn.onclick = () => makeChoice(choice);
-        choicesContainer.appendChild(btn);
-    });
-
-    if (pokiReady) PokiSDK.gameplayStart();
-}
-
-function makeChoice(choice) {
-    if (isAnimating) return;
-    isAnimating = true;
-    currentOutcome = choice;
-
-    // Khóa các nút khi đang diễn ra animation
-    choicesContainer.querySelectorAll('button').forEach(b => b.style.pointerEvents = 'none');
-    storyTextEl.innerText = choice.msg;
-
-    animTimer = 0;
-    requestAnimationFrame(animateOutcome);
-}
-
-function animateOutcome() {
-    animTimer++;
-    drawBackground(levels[currentLevelIndex].bgType);
-
-    // Diễn hoạt theo lựa chọn
-    if (currentOutcome.success) {
-        // Hoạt ảnh THẮNG
-        drawStickman(200 + animTimer * 6, canvas.height - 80, 1);
-        if (animTimer > 80) {
-            isAnimating = false;
-            if (currentLevelIndex + 1 < levels.length) {
-                loadLevel(currentLevelIndex + 1);
-            } else {
-                storyTextEl.innerText = "🎉 CHÚC MỪNG! BẠN ĐÃ TRỐN THOÁT KHỎI NHÀ TÙ THÀNH CÔNG!";
-                choicesContainer.innerHTML = `<button class="choice-btn" onclick="loadLevel(0)">🔄 Chơi Lại Từ Đầu</button>`;
-            }
-            return;
-        }
-    } else {
-        // Hoạt ảnh THUA (Cảnh sát bắt)
-        drawStickman(300, canvas.height - 80, 1);
-        drawStickman(600 - animTimer * 4, canvas.height - 80, -1, true); // Cảnh sát xông ra
-
-        if (animTimer > 70) {
-            isAnimating = false;
-            triggerPokiAdOnLoss();
-            return;
+    // Jump / Wall Jump
+    if ((k === 'w' || e.code === 'Space') && !isDead) {
+        if (player.isGrounded) {
+            player.vy = player.jumpForce;
+        } else if (player.isWalled) {
+            player.vy = player.jumpForce * 0.95;
+            player.vx = player.wallDir * 8; // Đẩy bật khỏi tường
+            player.facing = player.wallDir;
         }
     }
+});
+window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
-    requestAnimationFrame(animateOutcome);
-}
+// === GAME CONTROLLER ===
+function die() {
+    if (isDead) return;
+    isDead = true;
+    deathCount++;
+    deathText.innerText = deathCount;
 
-// HÀM XỬ LÝ QUẢNG CÁO POKI KHI THUA
-function triggerPokiAdOnLoss() {
     if (pokiReady) PokiSDK.gameplayStop();
-
     adOverlay.style.display = 'flex';
 
-    const continueGameAfterAd = () => {
+    const respawn = () => {
         adOverlay.style.display = 'none';
-        // Cho người chơi thử lại Level hiện tại
-        loadLevel(currentLevelIndex);
+        isDead = false;
+        player.reset(maps[currentMap].spawn.x, maps[currentMap].spawn.y);
+        if (pokiReady) PokiSDK.gameplayStart();
     };
 
     if (pokiReady) {
-        PokiSDK.commercialBreak().then(continueGameAfterAd).catch(continueGameAfterAd);
+        PokiSDK.commercialBreak().then(respawn).catch(respawn);
     } else {
-        // Giả lập xem quảng cáo 1.5s nếu chạy Offline/Dev
-        setTimeout(continueGameAfterAd, 1500);
+        setTimeout(respawn, 1200);
     }
 }
 
-// Khởi chạy game ban đầu
-drawBackground("cell");
-drawStickman(480, canvas.height - 80, 1);
-loadLevel(0);
+function nextMap() {
+    if (currentMap + 1 < maps.length) {
+        currentMap++;
+        mapText.innerText = `${currentMap + 1} / ${maps.length}`;
+        player.reset(maps[currentMap].spawn.x, maps[currentMap].spawn.y);
+    } else {
+        alert("🎉 CHÚC MỪNG! BẠN ĐÃ CHẠY PARKOUR PHÁ ĐẢO TOÀN BỘ MAP!");
+        currentMap = 0;
+        deathCount = 0;
+        deathText.innerText = 0;
+        mapText.innerText = `1 / ${maps.length}`;
+        player.reset(maps[0].spawn.x, maps[0].spawn.y);
+    }
+}
+
+// === RENDER ===
+function drawMap(m) {
+    // Sàn nhà / Nền Tường
+    ctx.fillStyle = '#1e293b';
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 2;
+    m.platforms.forEach(p => {
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+        ctx.strokeRect(p.x, p.y, p.w, p.h);
+    });
+
+    // Bẫy Gai (Spikes)
+    ctx.fillStyle = '#ef4444';
+    m.spikes.forEach(sp => {
+        for (let x = sp.x; x < sp.x + sp.w; x += 10) {
+            ctx.beginPath();
+            ctx.moveTo(x, sp.y + sp.h);
+            ctx.lineTo(x + 5, sp.y);
+            ctx.lineTo(x + 10, sp.y + sp.h);
+            ctx.fill();
+        }
+    });
+
+    // Cổng Thoát (Exit Door)
+    ctx.save();
+    ctx.shadowColor = '#22c55e';
+    ctx.shadowBlur = 20;
+    ctx.fillStyle = '#22c55e';
+    ctx.fillRect(m.exit.x, m.exit.y, m.exit.w, m.exit.h);
+    ctx.restore();
+}
+
+function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const m = maps[currentMap];
+    drawMap(m);
+
+    player.update(m.platforms, m.spikes, m.exit);
+    player.draw();
+
+    requestAnimationFrame(loop);
+}
+
+player.reset(maps[0].spawn.x, maps[0].spawn.y);
+if (pokiReady) PokiSDK.gameplayStart();
+loop();
 </script>
 </body>
 </html>
